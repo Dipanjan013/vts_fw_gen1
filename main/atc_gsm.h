@@ -6,4 +6,4 @@ typedef enum atc_gsm_tagFnStatus
     ATC_GSM_FN_STATUS_OK = 0,
 } atc_gsm_fnStatus_t;
 
-atc_gsm_fnStatus_t atc_gsm_StartReceiverTask(atc_t *atc);
+atc_gsm_fnStatus_t atc_gsm_StartReceiverTask(port_uart_num_t uartNum);
