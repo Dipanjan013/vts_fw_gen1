@@ -20,7 +20,8 @@
         "task.h": "c",
         "atc_gsm.h": "c",
         "assert.h": "c",
-        "debug_logs.h": "c"
+        "debug_logs.h": "c",
+        "config.h": "c"
     },
     "idf.flashType": "UART"
 }

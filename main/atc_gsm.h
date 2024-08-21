@@ -1,9 +1,8 @@
+#ifndef _ATC_GSM_H_
+#define _ATC_GSM_H_
+
 #include "atc.h"
 
-typedef enum atc_gsm_tagFnStatus
-{
-    ATC_GSM_FN_STATUS_ERR = -1,
-    ATC_GSM_FN_STATUS_OK = 0,
-} atc_gsm_fnStatus_t;
+atc_fnStatus_t atc_StartGsmReceiverTask(uart_port_t uartNum);
 
-atc_gsm_fnStatus_t atc_gsm_StartReceiverTask(port_uart_num_t uartNum);
+#endif /* _ATC_GSM_H_ */

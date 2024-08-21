@@ -33,6 +33,7 @@ typedef enum app_tagConsumedEvent
 {
     APP_CONSUMED_EVENT_IDLE,
     APP_CONSUMED_EVENT_GSM_DATA_RECVD,
+    APP_CONSUMED_EVENT_GSM_SEND_CMD,
     APP_CONSUMED_EVENT_MAX,
 } app_consumedEvent_t;
 
@@ -98,7 +99,7 @@ app_stateMachineStatus_t AppIdleState(app_stateInstance_t *pInstance, app_eventP
     case APP_CONSUMED_EVENT_IDLE:
     {
         pInstance->nextState = AppGsmState;
-        app_eventParam_t eventParam = {.event = APP_CONSUMED_EVENT_GSM_DATA_RECVD};
+        app_eventParam_t eventParam = {.event = APP_CONSUMED_EVENT_GSM_SEND_CMD};
         AppPostEvent(&eventParam);
         ret = APP_STATE_MACHINE_STATUS_TRANS;
     }
@@ -121,6 +122,21 @@ app_stateMachineStatus_t AppGsmState(app_stateInstance_t *pInstance, app_eventPa
     {
     case APP_RESERVED_EVENT_ENTRY:
         LOG_I("[%s] %s\r\n", (char *)__func__, "Entry");
+        ret = APP_STATE_MACHINE_STATUS_HANDLED;
+        break;
+    case APP_CONSUMED_EVENT_GSM_SEND_CMD:
+        LOG_I("[%s] %s\r\n", (char *)__func__, "Gsm send cmd");
+        char cmd[] = "AT\r\n";
+        int rc = port_uart_Tx(CONFIG_UART_NUM2, (uint8_t *)cmd, strlen(cmd));
+        if (rc == 0)
+        {
+            app_eventParam_t appEvent = {.event = APP_CONSUMED_EVENT_GSM_DATA_RECVD};
+            AppPostEvent(&appEvent);
+        }
+        else
+        {
+            LOG_W("Failed to send write command\r\n");
+        }
         ret = APP_STATE_MACHINE_STATUS_HANDLED;
         break;
     case APP_CONSUMED_EVENT_GSM_DATA_RECVD:
@@ -205,11 +221,18 @@ void app_main(void)
         return;
     }
 
-    if (ATC_GSM_FN_STATUS_OK != atc_gsm_StartReceiverTask(CONFIG_UART_NUM2))
-    {
-        LOG_E("[%s]Failed to Start the GSM receiver task\r\n", (char *)__func__);
-        return;
-    }
+    static port_uart_config_t gsmUartConfig = {
+        .initiated = false,
+        .lock = false,
+        .uartNum = UART_NUM_2,
+        .txPin = 17,
+        .rxPin = 16,
+        .config.baud_rate = 115200,
+        .config.data_bits = UART_DATA_8_BITS,
+        .config.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .config.parity = UART_PARITY_DISABLE,
+        .config.source_clk = UART_SCLK_DEFAULT,
+        .config.stop_bits = UART_STOP_BITS_1};
 
     /* Start the state machine entry */
     app_eventParam_t eventParam = {0};
