@@ -1,0 +1,8 @@
+../resource/atc/atc..c:61:20:ClrFlags	2
+../resource/atc/atc..c:68:6:port_uart_Callback	2
+../resource/atc/atc..c:75:6:atc_InitCmdRespTable	1
+../resource/atc/atc..c:115:29:SendCmd	7
+../resource/atc/atc..c:136:29:RecvCmd	7
+../resource/atc/atc..c:157:8:atc_Init	2
+../resource/atc/atc..c:169:16:atc_Test	5
+../resource/atc/atc..c:201:8:atc_DeInit	2
