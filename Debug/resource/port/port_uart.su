@@ -3,6 +3,6 @@
 ../resource/port/port_uart.c:23:6:HAL_UARTEx_RxEventCallback	16	static
 ../resource/port/port_uart.c:28:6:HAL_UART_ErrorCallback	16	static
 ../resource/port/port_uart.c:34:22:port_uart_Init	24	static
-../resource/port/port_uart.c:61:22:port_uart_Transmit	32	static
-../resource/port/port_uart.c:78:22:port_uart_Receive	32	static
-../resource/port/port_uart.c:131:22:port_uart_DeInit	24	static
+../resource/port/port_uart.c:60:22:port_uart_Transmit	32	static
+../resource/port/port_uart.c:77:22:port_uart_Receive	32	static
+../resource/port/port_uart.c:130:22:port_uart_DeInit	24	static

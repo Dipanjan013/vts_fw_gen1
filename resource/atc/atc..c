@@ -117,7 +117,9 @@ static port_uart_fnStatus_t SendCmd(port_uart_handle_t *handle, uint8_t *txBuff,
 	ClrFlags(handle);
 	port_uart_fnStatus_t ret = PORT_UART_FN_STATUS_ERR;
 	ret = port_uart_Transmit(handle, txBuff, len);
-	VERIFY_AND_RETURN(ret, ret, __func__, __LINE__);
+	if(ret != 0){
+		return ret;
+	}
 
 	uint32_t t0 = HAL_GetTick();
 	if(handle == &gsmHandle){
@@ -138,7 +140,9 @@ static port_uart_fnStatus_t RecvCmd(port_uart_handle_t *handle, uint8_t *rxBuff,
 	ClrFlags(handle);
 	port_uart_fnStatus_t ret = PORT_UART_FN_STATUS_ERR;
 	ret = port_uart_Receive(handle, rxBuff, buffSize);
-	VERIFY_AND_RETURN(ret, ret, __func__, __LINE__);
+	if(ret != 0){
+		return ret;
+	}
 
 	uint32_t t0 = HAL_GetTick();
 	if(handle == &gsmHandle){
@@ -156,6 +160,7 @@ static port_uart_fnStatus_t RecvCmd(port_uart_handle_t *handle, uint8_t *rxBuff,
 
 int8_t atc_Init(void)
 {
+	gsmHandle.Instance = USART1;
 	port_uart_fnStatus_t ret = port_uart_Init(&gsmHandle);
 	VERIFY_AND_RETURN(ret, -1, __func__, __LINE__);
 	//TODO same for GPS uart
@@ -171,15 +176,36 @@ atc_fnStatus_t atc_Test(atc_module_t module, atc_cmd_t cmd)
 	if(ATC_LTE_MODULE == module){
 		ret = SendCmd(&gsmHandle, (uint8_t*)lookUpTbl[ATC_TEST].cmd, strlen(lookUpTbl[ATC_TEST].cmd), DEF_TIMEOUT_MS);
 		VERIFY_AND_RETURN(ret, ATC_FN_STATUS_FAIL, __func__, __LINE__);
-		uint8_t rxBuff[10];
+		uint8_t rxBuff[ATC_MAX_BUFF_SIZE+1];
 		memset(rxBuff, 0, sizeof(rxBuff));
-		ret = RecvCmd(&gsmHandle, rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS);
+		ret = RecvCmd(&gsmHandle, rxBuff, strlen(lookUpTbl[ATC_TEST].response), DEF_TIMEOUT_MS);
 		VERIFY_AND_RETURN(ret, ATC_FN_STATUS_FAIL, __func__, __LINE__);
 		if(strncmp((char*)rxBuff, lookUpTbl[ATC_TEST].response, strlen(lookUpTbl[ATC_TEST].response)) != 0){
 			return ATC_FN_STATUS_FAIL;
 		}
 	}
 	return ATC_FN_STATUS_OK;
+}
+
+void MyTest(void)
+{
+	ClrFlags(&gsmHandle);
+	int ret = 0;
+	ret = port_uart_Transmit(&gsmHandle, "AT\r\n", strlen("AT\r\n"));
+	printf("tx ret = %d\r\n", ret);
+	if(ret != 0)
+		return;
+
+	ClrFlags(&gsmHandle);
+	uint8_t rxBuff[100];
+	memset(rxBuff, 0, sizeof(rxBuff));
+	ret = port_uart_Receive(&gsmHandle, rxBuff, 5);
+	uint16_t t0 = 0;
+	while(gsmUartInfo.cbType == PORT_UART_CB_NONE && (++t0 < 5000)){
+		HAL_Delay(1);
+	}
+	printf("cb = %d\r\n", gsmUartInfo.cbType);
+	printf("Data %s\r\n", rxBuff);
 }
 
 //atc_fnStatus_t atc_Read(atc_module_t module, atc_cmd_t cmd, uint8_t *readBuff, uint16_t *size)

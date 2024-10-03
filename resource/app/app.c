@@ -41,10 +41,10 @@ static void MyTask(void *arg)
   atc_InitCmdRespTable();
 
   while(1){
-  	ret = atc_Test(ATC_LTE_MODULE, ATC_TEST);
-  	printf("ATC TEST status %d\r\n", ret);
-
-  	osDelay(1000);
+//  	ret = atc_Test(ATC_LTE_MODULE, ATC_TEST);
+//  	printf("ATC TEST status %d\r\n", ret);
+//  	osDelay(1000);
+  		MyTest();
   }
 
 }
