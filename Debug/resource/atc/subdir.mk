@@ -1,17 +1,20 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (11.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../resource/atc/atc..c 
+../resource/atc/atc.c \
+../resource/atc/atc_utils.c 
 
 OBJS += \
-./resource/atc/atc..o 
+./resource/atc/atc.o \
+./resource/atc/atc_utils.o 
 
 C_DEPS += \
-./resource/atc/atc..d 
+./resource/atc/atc.d \
+./resource/atc/atc_utils.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ resource/atc/%.o resource/atc/%.su resource/atc/%.cyclo: ../resource/atc/%.c res
 clean: clean-resource-2f-atc
 
 clean-resource-2f-atc:
-	-$(RM) ./resource/atc/atc..cyclo ./resource/atc/atc..d ./resource/atc/atc..o ./resource/atc/atc..su
+	-$(RM) ./resource/atc/atc.cyclo ./resource/atc/atc.d ./resource/atc/atc.o ./resource/atc/atc.su ./resource/atc/atc_utils.cyclo ./resource/atc/atc_utils.d ./resource/atc/atc_utils.o ./resource/atc/atc_utils.su
 
 .PHONY: clean-resource-2f-atc
 

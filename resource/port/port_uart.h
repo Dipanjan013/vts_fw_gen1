@@ -29,7 +29,11 @@ typedef enum port_uart_tagCbStatus{
 	PORT_UART_XFER_ERR,
 }port_uart_callback_t;
 
-typedef UART_HandleTypeDef port_uart_handle_t;
+typedef struct port_uart_tagHndl{
+	UART_HandleTypeDef handle;
+	port_uart_callback_t cbType;
+}port_uart_handle_t;
+
 //void port_uart_Callback(port_uart_callback_t cbType, port_uart_handle_t *handle);
 #endif
 port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl);

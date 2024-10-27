@@ -1,0 +1,2 @@
+../resource/atc/atc_utils.c:10:9:atc_utils_IsDigitBuff	24	static
+../resource/atc/atc_utils.c:19:9:atc_utils_MapSQ	24	static

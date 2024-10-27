@@ -12,15 +12,20 @@
 
 #define ATC_MAX_BUFF_SIZE 512
 
+#define ATC_IMSI_MAX_LEN 15
+#define ATC_ICCID_MAX_LEN 22
+#define ATC_MODEM_INFO_MAX_LEN 50
+#define ATC_RSSI_MAX_LEN 4
+#define ATC_NW_OP_CODE_MAX_LEN 6
+
 typedef enum atc_tagFnStatus{
-	ATC_FN_STATUS_TIMEOUT = -3,
-	ATC_FN_STATUS_BUSY = -2,
+	ATC_FN_STATUS_TIMEOUT = -2,
 	ATC_FN_STATUS_FAIL = -1,
 	ATC_FN_STATUS_OK = 0,
 }atc_fnStatus_t;
 
 typedef enum atc_tag_module{
-	ATC_GPS_MODULE,
+	ATC_GPS_MODULE = 1,
 	ATC_LTE_MODULE,
 }atc_module_t;
 
@@ -28,6 +33,11 @@ typedef struct atc_tagLookUpTbl{
 	const char *cmd;
 	const char *response;
 }atc_lookUpTbl_t;
+
+typedef struct atc_tagData{
+	uint8_t data[ATC_MAX_BUFF_SIZE+1];
+	uint16_t len;
+}atc_data_t;
 
 typedef enum atc_tagCmd{
 	//basic commands
@@ -71,13 +81,7 @@ typedef enum atc_tagCmd{
 }atc_cmd_t;
 
 int8_t atc_Init(void);
-void atc_InitCmdRespTable(void);
-
-atc_fnStatus_t atc_Test(atc_module_t module, atc_cmd_t cmd);
-atc_fnStatus_t atc_Read(atc_module_t module, atc_cmd_t cmd, uint8_t *readBuff, uint16_t *size);	//size using as in-out ; in = sizeof of readbuff argument supplied, out = bytes read
-atc_fnStatus_t atc_Set(atc_module_t module, atc_cmd_t cmd, uint8_t *writeBuff, uint16_t writeLen);
-atc_fnStatus_t atc_Execute(atc_module_t module, atc_cmd_t cmd);
-
+uint8_t atc_CmdLookUpTable(atc_cmd_t cmd, uint8_t *buff, uint16_t len);
 int8_t atc_DeInit(void);
 
 #endif /* ATC_ATC_H_ */

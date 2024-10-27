@@ -1,9 +1,0 @@
-../resource/atc/atc..c:61:20:ClrFlags	16	static
-../resource/atc/atc..c:68:6:port_uart_Callback	16	static
-../resource/atc/atc..c:75:6:atc_InitCmdRespTable	128	static
-../resource/atc/atc..c:115:29:SendCmd	32	static
-../resource/atc/atc..c:138:29:RecvCmd	32	static
-../resource/atc/atc..c:161:8:atc_Init	16	static
-../resource/atc/atc..c:173:16:atc_Test	544	static
-../resource/atc/atc..c:190:6:MyTest	120	static
-../resource/atc/atc..c:226:8:atc_DeInit	16	static
