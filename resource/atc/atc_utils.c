@@ -16,12 +16,12 @@ uint8_t atc_utils_IsDigitBuff(uint8_t *buff, uint16_t size)
 	return 1;
 }
 
-int16_t atc_utils_MapSQ(uint8_t uc)
+int16_t atc_utils_MapSQ(int val)
 {
 	int16_t rssi = 0;
-	switch(uc){
+	switch(val){
 		case 0:
-			rssi = -112;
+			rssi = -113;
 			break;
 		case 1:
 			rssi = -111;
@@ -39,7 +39,7 @@ int16_t atc_utils_MapSQ(uint8_t uc)
 			rssi = 0;
 			break;
 		default:{	//between 2 to 30
-			rssi = -53 - (uc*2);
+			rssi = - (113 - (val*2));
 		}
 	}
 	return rssi;

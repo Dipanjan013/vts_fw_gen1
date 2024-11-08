@@ -1,5 +1,5 @@
-../resource/app/app.c:70:33:AppPreOPState	5
-../resource/app/app.c:99:33:AppGsmState	5
-../resource/app/app.c:132:6:app_PostEvent	3
-../resource/app/app.c:139:13:AppDispatcherTask	4
-../resource/app/app.c:168:6:app_main	3
+../resource/app/app.c:71:33:AppPreOPState	5
+../resource/app/app.c:100:33:AppGsmState	5
+../resource/app/app.c:164:6:app_PostEvent	2
+../resource/app/app.c:171:13:AppDispatcherTask	4
+../resource/app/app.c:200:6:app_main	3

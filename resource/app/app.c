@@ -12,6 +12,7 @@
 
 #include "app.h"
 #include "atc.h"
+#include "services.h"
 
 /*! Macros */
 
@@ -42,8 +43,8 @@ typedef enum app_tagReservedEvent
 typedef app_stateMachineStatus_t (*StateHandle_t)(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
 
 static app_stateMachineStatus_t AppPreOPState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
-static app_stateMachineStatus_t AppSleepState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
-static app_stateMachineStatus_t AppGpsState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
+//__attribute__((unused)) static app_stateMachineStatus_t AppSleepState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
+//__attribute__((unused)) static app_stateMachineStatus_t AppGpsState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
 static app_stateMachineStatus_t AppGsmState(app_stateInstance_t *pInstance, app_eventParam_t *pParam);
 
 static void AppDispatcherTask(void *arg);
@@ -60,7 +61,7 @@ static app_stateInstance_t gStateInstance;
 static const osThreadAttr_t appDispatcherAttr = {
   .name = "app_dispatcher",
   .stack_size = 1024*3,
-  .priority = (osPriority_t)osPriorityLow,
+  .priority = (osPriority_t)osPriorityNormal,
 };
 
 /************************************************************************************************************************************************
@@ -72,14 +73,14 @@ static app_stateMachineStatus_t AppPreOPState(app_stateInstance_t *pInstance, ap
 	app_stateMachineStatus_t status = APP_STATE_MACHINE_STATUS_HANDLED;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:{
-			printf("[%s] %s\r\n", __func__, "Entry");
+			LOG_I("[%s] %s\r\n", __func__, "Entry");
 			pParam->event = APP_CONSUMED_EVENT_INIT;
 			app_PostEvent(pParam, 0);
 			status = APP_STATE_MACHINE_STATUS_HANDLED;
 		}break;
 
 		case APP_CONSUMED_EVENT_INIT:{
-			printf("[%s] %s\r\n", __func__, "Init");
+			LOG_I("[%s] %s\r\n", __func__, "Init");
 			atc_Init();
 			pInstance->nextState = AppGsmState;
 			status = APP_STATE_MACHINE_STATUS_TRANS;
@@ -87,7 +88,7 @@ static app_stateMachineStatus_t AppPreOPState(app_stateInstance_t *pInstance, ap
 		}break;
 
 		case APP_RESERVED_EVENT_EXIT:{
-			printf("[%s] %s\r\n", __func__, "Exit");
+			LOG_I("[%s] %s\r\n", __func__, "Exit");
 			status = APP_STATE_MACHINE_STATUS_HANDLED;
 		}break;
 		default:
@@ -102,25 +103,56 @@ static app_stateMachineStatus_t AppGsmState(app_stateInstance_t *pInstance, app_
 	int16_t ret = 0;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:{
-			printf("[%s] %s\r\n", __func__, "Entry");
+			LOG_I("[%s] %s\r\n", __func__, "Entry");
 			pParam->event = APP_CONSUMED_EVENT_TEST;
 			app_PostEvent(pParam, 0);
 			status = APP_STATE_MACHINE_STATUS_HANDLED;
 		}break;
 
 		case APP_CONSUMED_EVENT_TEST:{
+			uint8_t temp[512] = {0};
+
 			ret = atc_CmdLookUpTable(ATC_TEST, NULL, 0);
-			printf("test status = %d\r\n", ret);
-//			char imsi[ATC_IMSI_MAX_LEN+1] = {0};
-//			ret = atc_CmdLookUpTable(ATC_IMSI, imsi, ATC_IMSI_MAX_LEN);
-//			printf("test status = %d, data = %s\r\n", ret, imsi);
+			LOG_I("ATC_TEST status = %d\r\n", ret);
+
+			memset(temp, 0, 512);
+			ret = atc_CmdLookUpTable(ATC_IMSI, temp, ATC_IMSI_MAX_LEN);
+			LOG_I("ATC_IMSI status = %d\r\n", ret);
+			LOG_I("IMSI : %s\r\n", (char*)temp);
+
+			memset(temp, 0, 512);
+			ret = atc_CmdLookUpTable(ATC_ICCID, temp, ATC_ICCID_MAX_LEN);
+			LOG_I("ATC_ICCID status = %d\r\n", ret);
+			LOG_I("ICCID : %s\r\n", (char*)temp);
+
+			memset(temp, 0, 512);
+			ret = atc_CmdLookUpTable(ATC_MODEM_INFO, temp, ATC_MODEM_INFO_MAX_LEN);
+			LOG_I("ATC_MODEM_INFO status = %d\r\n", ret);
+			LOG_I("Modem info : %s\r\n", (char*)temp);
+
+			ret = atc_CmdLookUpTable(ATC_NW_REG_STATUS, NULL, 0);
+			LOG_I("ATC_NW_REG_STATUS = %d\r\n", ret);
+
+			ret = atc_CmdLookUpTable(ATC_CAVLI_HUBBLE_REG_STATUS, NULL, 0);
+			LOG_I("ATC_CAVLI_HUBBLE_REG_STATUS = %d\r\n", ret);
+
+			memset(temp, 0, 512);
+			ret = atc_CmdLookUpTable(ATC_NW_RSSI_CHECK, temp, ATC_RSSI_MAX_LEN);
+			LOG_I("ATC_NW_RSSI_CHECK status = %d\r\n", ret);
+			LOG_I("RSSI : %s\r\n", (char*)temp);
+
+			memset(temp, 0, 512);
+			ret = atc_CmdLookUpTable(ATC_NW_OP_NAME, temp, ATC_NW_OP_CODE_MAX_LEN);
+			LOG_I("ATC_NW_OP_NAME status = %d\r\n", ret);
+			LOG_I("O/P name : %s\r\n", (char*)temp);
+
 			osDelay(3000);
-			app_PostEvent(pParam, 0);
+//			app_PostEvent(pParam, 0);
 			status = APP_STATE_MACHINE_STATUS_HANDLED;
 		}break;
 
 		case APP_RESERVED_EVENT_EXIT:{
-			printf("[%s] %s\r\n", __func__, "Exit");
+			LOG_I("[%s] %s\r\n", __func__, "Exit");
 			status = APP_STATE_MACHINE_STATUS_HANDLED;
 		}break;
 		default:
@@ -132,7 +164,7 @@ static app_stateMachineStatus_t AppGsmState(app_stateInstance_t *pInstance, app_
 void app_PostEvent(app_eventParam_t *pParam, uint8_t flagFromISR)
 {
 	if(osOK != osMessageQueuePut(gQHndl, pParam, 0, (flagFromISR == 1)? 0U : 100U)){
-		printf("[%s]Failed to send Message\r\n", __func__);
+		LOG_W("[%s]Failed to send Message\r\n", __func__);
 	}
 }
 
@@ -154,11 +186,11 @@ static void AppDispatcherTask(void *arg)
 					eventParam.event = APP_RESERVED_EVENT_ENTRY;
 					gStateInstance.currentState(&gStateInstance, &eventParam);
 				}else{
-					printf("State switch requested but next state is NULL\r\n");
+					LOG_W("State switch requested but next state is NULL\r\n");
 				}
 			}
 		}else{
-			printf("[%s %d]Failed to receive message\r\n", __func__, __LINE__);
+			LOG_W("[%s %d]Failed to receive message\r\n", __func__, __LINE__);
 			osDelay(1000);
 		}
 	}
@@ -167,16 +199,16 @@ static void AppDispatcherTask(void *arg)
 
 void app_main(void)
 {
-	printf("\r\nVTS GEN 1\r\n");
-	printf("Build Date %s\r\n", __DATE__);
-	printf("Build Time %s\r\n", __TIME__);
+	LOG_I("\r\nVTS GEN 1\r\n");
+	LOG_I("Build Date %s\r\n", __DATE__);
+	LOG_I("Build Time %s\r\n", __TIME__);
 
   /* Init scheduler */
 	osKernelInitialize();
 
 	gQHndl = osMessageQueueNew(2, sizeof(app_eventParam_t), NULL);
 	if(gQHndl == NULL){
-		printf("Failed to create msg queue\r\n");
+		LOG_E("Failed to create msg queue\r\n");
 		return;
 	}
 
@@ -186,7 +218,7 @@ void app_main(void)
 	app_PostEvent(&param, 0);
 
 	if(NULL == osThreadNew(AppDispatcherTask, NULL, &appDispatcherAttr)){
-		printf("Failed to create App Dispatcher Task\r\n");
+		LOG_E("Failed to create App Dispatcher Task\r\n");
 		return;
 	}
 

@@ -11,6 +11,6 @@
 #include <stdint.h>
 
 uint8_t atc_utils_IsDigitBuff(uint8_t *buff, uint16_t size);
-int16_t atc_utils_MapSQ(uint8_t uc);
+int16_t atc_utils_MapSQ(int val);
 
 #endif /* ATC_ATC_UTILS_H_ */

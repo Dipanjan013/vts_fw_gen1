@@ -10,38 +10,46 @@
  *															Private Functions
  **********************************************************************************/
 
-__WEAK void port_uart_Callback(port_uart_callback_t cbType, UART_HandleTypeDef *huart)
+#ifdef PORT_UART_MODE_INTERRUPT
+
+__WEAK void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 {
-	;
+	(void)(huart);
+	(void)(id);
 }
 
-#if PORT_UART_MODE_INTERRUPT
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	port_uart_Callback(PORT_UART_TX_CMPLT, huart);
+	port_uart_Callback(huart, PORT_UART_CB_ID_TX_CMPLT);
 }
+
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//{
+//	port_uart_Callback(huart, PORT_UART_CB_ID_RX_CMPLT);
+//}
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-	port_uart_Callback(PORT_UART_RX_CMPLT, huart);
+	(void)(Size);
+	port_uart_Callback(huart, PORT_UART_CB_ID_RX_CMPLT);
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-	port_uart_Callback(PORT_UART_XFER_ERR, huart);
+	port_uart_Callback(huart, PORT_UART_CB_ID_XFER_ERR);
 }
 #endif
 
 port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl)
 {
-	uartHndl->handle.Init.WordLength = UART_WORDLENGTH_8B;
-	uartHndl->handle.Init.StopBits = UART_STOPBITS_1;
-	uartHndl->handle.Init.Parity = UART_PARITY_NONE;
-	uartHndl->handle.Init.Mode = UART_MODE_TX_RX;
-	uartHndl->handle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	uartHndl->handle.Init.OverSampling = UART_OVERSAMPLING_16;
+	uartHndl->Init.WordLength = UART_WORDLENGTH_8B;
+	uartHndl->Init.StopBits = UART_STOPBITS_1;
+	uartHndl->Init.Parity = UART_PARITY_NONE;
+	uartHndl->Init.Mode = UART_MODE_TX_RX;
+	uartHndl->Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	uartHndl->Init.OverSampling = UART_OVERSAMPLING_16;
 
-	HAL_StatusTypeDef ret = HAL_UART_Init(&uartHndl->handle);
+	HAL_StatusTypeDef ret = HAL_UART_Init(uartHndl);
 	switch(ret){
 		case HAL_OK:
 			return PORT_UART_FN_STATUS_OK;
@@ -56,11 +64,10 @@ port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl)
 	}
 }
 
-#if PORT_UART_MODE_INTERRUPT
+#ifdef PORT_UART_MODE_INTERRUPT
 port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen)
 {
-	uartHndl->cbType = PORT_UART_CB_NONE;
-	HAL_StatusTypeDef ret = HAL_UART_Transmit_IT(&uartHndl->handle, txBuff, txLen);
+	HAL_StatusTypeDef ret = HAL_UART_Transmit_IT(uartHndl, txBuff, txLen);
 	switch(ret){
 		case HAL_OK:
 			return PORT_UART_FN_STATUS_OK;
@@ -77,10 +84,7 @@ port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *t
 
 port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rxBuff, uint16_t buffSize)
 {
-	__HAL_UART_CLEAR_OREFLAG(&uartHndl->handle);
-	HAL_UART_AbortReceive_IT(&uartHndl->handle);		//in case this command is already sent  previously
-	uartHndl->cbType = PORT_UART_CB_NONE;
-	HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_IT(&uartHndl->handle, rxBuff, buffSize);
+	HAL_StatusTypeDef ret = HAL_UARTEx_ReceiveToIdle_IT(uartHndl, rxBuff, buffSize);
 	switch(ret){
 		case HAL_OK:
 			return PORT_UART_FN_STATUS_OK;
@@ -132,7 +136,7 @@ port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rx
 
 port_uart_fnStatus_t port_uart_DeInit(port_uart_handle_t *uartHndl)
 {
-	HAL_StatusTypeDef ret = HAL_UART_DeInit(&uartHndl->handle);
+	HAL_StatusTypeDef ret = HAL_UART_DeInit(uartHndl);
 	switch(ret){
 		case HAL_OK:
 			return PORT_UART_FN_STATUS_OK;
