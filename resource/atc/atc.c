@@ -14,6 +14,7 @@
 #include "atc_utils.h"
 #include "port_uart.h"
 #include "services.h"
+#include "service_queue.h"
 
 /*! Macros */
 #define EOS "\r\n\0"	//end of string
@@ -35,7 +36,7 @@
 
 //Modem specific commands
 #define AT_HUBBLE_REG_STATUS "AT+HUBBLEREG?"EOS
-#define DEF_TIMEOUT_MS (uint16_t)5000
+#define DEF_TIMEOUT_MS (uint16_t)10000
 
 #define VERIFY_AND_RETURN(x, y, s, d) \
 do{ \
@@ -89,15 +90,9 @@ uint8_t HandleModemReboot(uint8_t *buff, uint16_t buffSize);
 /*! Variable definition */
 port_uart_handle_t gsmHandle;
 __attribute__((unused)) port_uart_handle_t gpsHandle;
-
-static volatile uint8_t flagGsmTxCmplt = 0;
-static volatile uint8_t flagGsmRxCmplt = 0;
-static volatile uint8_t flagGsmErrXfer = 0;
-
-// below for GPS uart
-//static volatile uint8_t flagGsmTxCmplt = 0;
-//static volatile uint8_t flagGsmRxCmplt = 0;
-//static volatile uint8_t flagGsmErrXfer = 0;
+static service_queue_t gGsmQueue = {0};
+static port_uart_cb_id_t gGsmCbId = PORT_UART_CB_ID_UNDEF;
+static uint8_t gGsmByte = 0;
 
 static cmdRegisterTable_t cmdRegisterTable[] = {
 	{ATC_TEST, HandleTest},                           // Basic Commands
@@ -130,13 +125,19 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 	if(huart == &gsmHandle){
 		switch(id){
 			case PORT_UART_CB_ID_TX_CMPLT:
-				flagGsmTxCmplt = 1;
+				gGsmCbId = PORT_UART_CB_ID_TX_CMPLT;
 				break;
-			case PORT_UART_CB_ID_RX_CMPLT:
-				flagGsmRxCmplt = 1;
-				break;
+			case PORT_UART_CB_ID_RX_CMPLT:{
+				service_queue_Enqueue(&gGsmQueue, gGsmByte);
+				gGsmByte = 0;
+				port_uart_Receive(huart, &gGsmByte, 1);
+				if((huart->Instance->SR != UART_FLAG_RXNE)){
+					port_uart_AbortXfer(huart);
+					gGsmCbId = PORT_UART_CB_ID_RX_CMPLT;
+				}
+			}break;
 			case PORT_UART_CB_ID_XFER_ERR:
-				flagGsmErrXfer = 1;
+				gGsmCbId = PORT_UART_CB_ID_XFER_ERR;
 				break;
 			default:
 				break;
@@ -148,6 +149,7 @@ int8_t atc_Init(void)
 {
 	gsmHandle.Instance = USART1;
 	gsmHandle.Init.BaudRate = 115200;
+	service_queue_Init(&gGsmQueue);
 	port_uart_fnStatus_t ret = port_uart_Init(&gsmHandle);
 	VERIFY_AND_RETURN(ret, -1, __func__, __LINE__);
 	return 0;
@@ -160,51 +162,43 @@ static port_uart_fnStatus_t Commander(atc_module_t module, uint8_t *cmd, uint16_
 	/* Assign the uart handle*/
 	if(ATC_LTE_MODULE == module){
 		handle = &gsmHandle;
-		flagGsmErrXfer = 0;
-		flagGsmTxCmplt = 0;
-		flagGsmRxCmplt = 0;
-		__HAL_UART_FLUSH_DRREGISTER(handle);
-		__HAL_UART_CLEAR_OREFLAG(handle);
+		gGsmByte = 0;
+		gGsmCbId = PORT_UART_CB_ID_UNDEF;
+		service_queue_Reset(&gGsmQueue);
+//		__HAL_UART_FLUSH_DRREGISTER(handle);
+//		__HAL_UART_CLEAR_OREFLAG(handle);
 	}
-	ret = port_uart_Receive(handle, rxBuff, buffSize);
-	if(PORT_UART_FN_STATUS_OK != ret){
-		return ret;
-	}
-	LOG_V("rx func ret %d\r\n", ret);
 	ret = port_uart_Transmit(handle, cmd, cmdLen);
 	if(PORT_UART_FN_STATUS_OK != ret){
 		return ret;
 	}
 	LOG_V("tx func ret %d\r\n", ret);
 	//Wait for tx complete
-	while((0 < timeoutMs--) && (!flagGsmTxCmplt)){
+	while((0 < timeoutMs--) && (gGsmCbId != PORT_UART_CB_ID_TX_CMPLT)){
 		osDelay(1);
-		if(flagGsmErrXfer){
+		if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
 			LOG_V("tx flag err\r\n");
 			return PORT_UART_FN_STATUS_ERR;
 		}
 	}
-	if(!flagGsmTxCmplt){
-		LOG_V("tx timeout\r\n");
-		return PORT_UART_FN_STATUS_TIMEOUT;
+	ret = port_uart_Receive(handle, &gGsmByte, 1);
+	if(PORT_UART_FN_STATUS_OK != ret){
+		return ret;
 	}
-	LOG_V("tx success\r\n");
+	LOG_V("rx func ret %d\r\n", ret);
 	//Wait for rx complete
-	while((0 < timeoutMs--) && (!flagGsmRxCmplt)){
+	while((0 < timeoutMs--) && (gGsmCbId != PORT_UART_CB_ID_RX_CMPLT)){
 		osDelay(1);
-		if(flagGsmErrXfer){
+		if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
 			LOG_V("rx flag err\r\n");
 			return PORT_UART_FN_STATUS_ERR;
 		}
 	}
-	if(!flagGsmRxCmplt){
+	if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
 		LOG_V("rx timeout\r\n");
 		return PORT_UART_FN_STATUS_TIMEOUT;
 	}
-	LOG_V("data %s\r\n", rxBuff);
-	if()
-
-
+	service_queue_PrintInfo(&gGsmQueue);
 	return PORT_UART_FN_STATUS_OK;
 }
 

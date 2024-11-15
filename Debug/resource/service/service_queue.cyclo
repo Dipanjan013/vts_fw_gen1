@@ -1,0 +1,8 @@
+../resource/service/service_queue.c:15:16:IsFull	1
+../resource/service/service_queue.c:20:16:IsEmpty	1
+../resource/service/service_queue.c:25:26:service_queue_Init	1
+../resource/service/service_queue.c:31:26:service_queue_Enqueue	2
+../resource/service/service_queue.c:45:26:service_queue_Dequeue	2
+../resource/service/service_queue.c:56:6:service_queue_Reset	1
+../resource/service/service_queue.c:61:10:service_queue_NumOfItems	1
+../resource/service/service_queue.c:66:26:service_queue_PrintInfo	3

@@ -115,36 +115,36 @@ static app_stateMachineStatus_t AppGsmState(app_stateInstance_t *pInstance, app_
 			ret = atc_CmdLookUpTable(ATC_TEST, NULL, 0);
 			LOG_I("ATC_TEST status = %d\r\n", ret);
 
-			memset(temp, 0, 512);
-			ret = atc_CmdLookUpTable(ATC_IMSI, temp, ATC_IMSI_MAX_LEN);
-			LOG_I("ATC_IMSI status = %d\r\n", ret);
-			LOG_I("IMSI : %s\r\n", (char*)temp);
-
-			memset(temp, 0, 512);
-			ret = atc_CmdLookUpTable(ATC_ICCID, temp, ATC_ICCID_MAX_LEN);
-			LOG_I("ATC_ICCID status = %d\r\n", ret);
-			LOG_I("ICCID : %s\r\n", (char*)temp);
-
-			memset(temp, 0, 512);
-			ret = atc_CmdLookUpTable(ATC_MODEM_INFO, temp, ATC_MODEM_INFO_MAX_LEN);
-			LOG_I("ATC_MODEM_INFO status = %d\r\n", ret);
-			LOG_I("Modem info : %s\r\n", (char*)temp);
-
-			ret = atc_CmdLookUpTable(ATC_NW_REG_STATUS, NULL, 0);
-			LOG_I("ATC_NW_REG_STATUS = %d\r\n", ret);
-
-			ret = atc_CmdLookUpTable(ATC_CAVLI_HUBBLE_REG_STATUS, NULL, 0);
-			LOG_I("ATC_CAVLI_HUBBLE_REG_STATUS = %d\r\n", ret);
-
-			memset(temp, 0, 512);
-			ret = atc_CmdLookUpTable(ATC_NW_RSSI_CHECK, temp, ATC_RSSI_MAX_LEN);
-			LOG_I("ATC_NW_RSSI_CHECK status = %d\r\n", ret);
-			LOG_I("RSSI : %s\r\n", (char*)temp);
-
-			memset(temp, 0, 512);
-			ret = atc_CmdLookUpTable(ATC_NW_OP_NAME, temp, ATC_NW_OP_CODE_MAX_LEN);
-			LOG_I("ATC_NW_OP_NAME status = %d\r\n", ret);
-			LOG_I("O/P name : %s\r\n", (char*)temp);
+//			memset(temp, 0, 512);
+//			ret = atc_CmdLookUpTable(ATC_IMSI, temp, ATC_IMSI_MAX_LEN);
+//			LOG_I("ATC_IMSI status = %d\r\n", ret);
+//			LOG_I("IMSI : %s\r\n", (char*)temp);
+//
+//			memset(temp, 0, 512);
+//			ret = atc_CmdLookUpTable(ATC_ICCID, temp, ATC_ICCID_MAX_LEN);
+//			LOG_I("ATC_ICCID status = %d\r\n", ret);
+//			LOG_I("ICCID : %s\r\n", (char*)temp);
+//
+//			memset(temp, 0, 512);
+//			ret = atc_CmdLookUpTable(ATC_MODEM_INFO, temp, ATC_MODEM_INFO_MAX_LEN);
+//			LOG_I("ATC_MODEM_INFO status = %d\r\n", ret);
+//			LOG_I("Modem info : %s\r\n", (char*)temp);
+//
+//			ret = atc_CmdLookUpTable(ATC_NW_REG_STATUS, NULL, 0);
+//			LOG_I("ATC_NW_REG_STATUS = %d\r\n", ret);
+//
+//			ret = atc_CmdLookUpTable(ATC_CAVLI_HUBBLE_REG_STATUS, NULL, 0);
+//			LOG_I("ATC_CAVLI_HUBBLE_REG_STATUS = %d\r\n", ret);
+//
+//			memset(temp, 0, 512);
+//			ret = atc_CmdLookUpTable(ATC_NW_RSSI_CHECK, temp, ATC_RSSI_MAX_LEN);
+//			LOG_I("ATC_NW_RSSI_CHECK status = %d\r\n", ret);
+//			LOG_I("RSSI : %s\r\n", (char*)temp);
+//
+//			memset(temp, 0, 512);
+//			ret = atc_CmdLookUpTable(ATC_NW_OP_NAME, temp, ATC_NW_OP_CODE_MAX_LEN);
+//			LOG_I("ATC_NW_OP_NAME status = %d\r\n", ret);
+//			LOG_I("O/P name : %s\r\n", (char*)temp);
 
 			osDelay(3000);
 //			app_PostEvent(pParam, 0);

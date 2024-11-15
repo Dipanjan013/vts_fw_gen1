@@ -36,3 +36,4 @@
 "./resource/atc/atc.o"
 "./resource/atc/atc_utils.o"
 "./resource/port/port_uart.o"
+"./resource/service/service_queue.o"

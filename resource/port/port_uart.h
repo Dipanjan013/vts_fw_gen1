@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
 
-#define PORT_UART_MODE_INTERRUPT
-
 typedef enum port_uart_tagFnStatus{
 	PORT_UART_FN_STATUS_INVALID_ARG = -3,
 	PORT_UART_FN_STATUS_ERR = -2,
@@ -21,7 +19,6 @@ typedef enum port_uart_tagFnStatus{
 	PORT_UART_FN_STATUS_BUSY = 1,
 }port_uart_fnStatus_t;
 
-#ifdef PORT_UART_MODE_INTERRUPT
 typedef enum port_uart_tagCbID{
 	PORT_UART_CB_ID_UNDEF,
 	PORT_UART_CB_ID_TX_CMPLT,
@@ -29,21 +26,14 @@ typedef enum port_uart_tagCbID{
 	PORT_UART_CB_ID_XFER_ERR,
 }port_uart_cb_id_t;
 
-#endif
-
 typedef UART_HandleTypeDef port_uart_handle_t;
 
 port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl);
-
-#ifdef PORT_UART_MODE_INTERRUPT
 port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen);
 port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rxBuff, uint16_t buffSize);
+void port_uart_AbortXfer(port_uart_handle_t *uartHndl);
+void port_uart_AbortRxCallback(port_uart_handle_t *uartHndl);
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id);
-#else
-port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen);
-port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rxBuff, uint16_t buffSize, uint32_t timeoutMs);
-#endif
-
 port_uart_fnStatus_t port_uart_DeInit(port_uart_handle_t *uartHndl);
 
 #endif /* PORT_PORT_UART_H_ */

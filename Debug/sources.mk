@@ -33,4 +33,5 @@ Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang \
 resource/app \
 resource/atc \
 resource/port \
+resource/service \
 
