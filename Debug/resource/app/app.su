@@ -1,5 +1,5 @@
 ../resource/app/app.c:71:33:AppPreOPState	24	static
-../resource/app/app.c:100:33:AppGsmState	536	static
-../resource/app/app.c:164:6:app_PostEvent	16	static
-../resource/app/app.c:171:13:AppDispatcherTask	536	static
-../resource/app/app.c:200:6:app_main	528	static
+../resource/app/app.c:100:33:AppGsmState	1056	static
+../resource/app/app.c:167:6:app_PostEvent	16	static
+../resource/app/app.c:174:13:AppDispatcherTask	536	static
+../resource/app/app.c:203:6:app_main	528	static

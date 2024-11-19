@@ -26,6 +26,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	port_uart_Callback(huart, PORT_UART_CB_ID_RX_CMPLT);
 }
 
+//void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+//{
+//	port_uart_Callback(huart, PORT_UART_CB_ID_RX_CMPLT, Size);
+//}
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	port_uart_Callback(huart, PORT_UART_CB_ID_XFER_ERR);
@@ -108,10 +113,10 @@ port_uart_fnStatus_t port_uart_DeInit(port_uart_handle_t *uartHndl)
 
 void port_uart_AbortXfer(port_uart_handle_t *uartHndl)
 {
-	HAL_UART_Abort(uartHndl);
+	HAL_UART_Abort_IT(uartHndl);
 }
 
-void port_uart_AbortRxCallback(port_uart_handle_t *uartHndl)
+uint8_t port_uart_IsRxDataPending(port_uart_handle_t *uartHndl)
 {
-	HAL_UART_AbortReceiveCpltCallback(uartHndl);
+	return (uartHndl->Instance->SR == UART_FLAG_RXNE);
 }

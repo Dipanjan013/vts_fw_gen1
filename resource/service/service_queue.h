@@ -29,6 +29,7 @@ typedef struct service_queue_tagCQueue{
 service_queue_fnStatus_t service_queue_Init(service_queue_t *q);
 service_queue_fnStatus_t service_queue_Enqueue(service_queue_t *q, uint8_t val);
 service_queue_fnStatus_t service_queue_Dequeue(service_queue_t *q, uint8_t  *val);
+void service_queue_DequeToTarget(service_queue_t *q, uint8_t *targetBuff, uint16_t buffSize);
 uint16_t service_queue_NumOfItems(service_queue_t *q);
 void service_queue_Reset(service_queue_t *q);
 service_queue_fnStatus_t service_queue_PrintInfo(service_queue_t *q);

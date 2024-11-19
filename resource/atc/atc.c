@@ -36,7 +36,7 @@
 
 //Modem specific commands
 #define AT_HUBBLE_REG_STATUS "AT+HUBBLEREG?"EOS
-#define DEF_TIMEOUT_MS (uint16_t)10000
+#define DEF_TIMEOUT_MS (uint16_t)5000
 
 #define VERIFY_AND_RETURN(x, y, s, d) \
 do{ \
@@ -58,7 +58,8 @@ typedef struct tagCmdRegTable{
 /*! Private variables */
 
 /*! Function prototypes */
-static port_uart_fnStatus_t Commander(atc_module_t module, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs);
+static port_uart_fnStatus_t GsmCommander(uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs);
+__attribute__((unused)) static port_uart_fnStatus_t GpsCommander(uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs);
 
 
 // all type of result will be stored in uint8_t buffer. User needs to parse it
@@ -129,10 +130,8 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 				break;
 			case PORT_UART_CB_ID_RX_CMPLT:{
 				service_queue_Enqueue(&gGsmQueue, gGsmByte);
-				gGsmByte = 0;
 				port_uart_Receive(huart, &gGsmByte, 1);
-				if((huart->Instance->SR != UART_FLAG_RXNE)){
-					port_uart_AbortXfer(huart);
+				if(!port_uart_IsRxDataPending(huart)){
 					gGsmCbId = PORT_UART_CB_ID_RX_CMPLT;
 				}
 			}break;
@@ -155,51 +154,68 @@ int8_t atc_Init(void)
 	return 0;
 }
 
-static port_uart_fnStatus_t Commander(atc_module_t module, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs)
+static port_uart_fnStatus_t GsmCommander(uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs)
 {
 	port_uart_fnStatus_t ret = PORT_UART_FN_STATUS_ERR;
-	port_uart_handle_t *handle = NULL;
-	/* Assign the uart handle*/
-	if(ATC_LTE_MODULE == module){
-		handle = &gsmHandle;
-		gGsmByte = 0;
-		gGsmCbId = PORT_UART_CB_ID_UNDEF;
-		service_queue_Reset(&gGsmQueue);
-//		__HAL_UART_FLUSH_DRREGISTER(handle);
-//		__HAL_UART_CLEAR_OREFLAG(handle);
-	}
-	ret = port_uart_Transmit(handle, cmd, cmdLen);
+	gGsmByte = 0;
+	gGsmCbId = PORT_UART_CB_ID_UNDEF;
+	port_uart_AbortXfer(&gsmHandle);
+
+	ret = port_uart_Transmit(&gsmHandle, cmd, cmdLen);
 	if(PORT_UART_FN_STATUS_OK != ret){
-		return ret;
-	}
-	LOG_V("tx func ret %d\r\n", ret);
-	//Wait for tx complete
-	while((0 < timeoutMs--) && (gGsmCbId != PORT_UART_CB_ID_TX_CMPLT)){
-		osDelay(1);
-		if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
-			LOG_V("tx flag err\r\n");
-			return PORT_UART_FN_STATUS_ERR;
-		}
-	}
-	ret = port_uart_Receive(handle, &gGsmByte, 1);
-	if(PORT_UART_FN_STATUS_OK != ret){
-		return ret;
-	}
-	LOG_V("rx func ret %d\r\n", ret);
-	//Wait for rx complete
-	while((0 < timeoutMs--) && (gGsmCbId != PORT_UART_CB_ID_RX_CMPLT)){
-		osDelay(1);
-		if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
-			LOG_V("rx flag err\r\n");
-			return PORT_UART_FN_STATUS_ERR;
-		}
+		goto __exit_point;
 	}
 	if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
-		LOG_V("rx timeout\r\n");
-		return PORT_UART_FN_STATUS_TIMEOUT;
+		ret = PORT_UART_FN_STATUS_ERR;
+		goto __exit_point;
 	}
-	service_queue_PrintInfo(&gGsmQueue);
-	return PORT_UART_FN_STATUS_OK;
+	while(timeoutMs-- && (gGsmCbId != PORT_UART_CB_ID_TX_CMPLT)){
+		if(0 == timeoutMs){
+			ret = PORT_UART_FN_STATUS_TIMEOUT;
+			goto __exit_point;
+		}
+		osDelay(1);
+	}
+
+	gGsmCbId = PORT_UART_CB_ID_UNDEF;
+	service_queue_Reset(&gGsmQueue);
+	ret = port_uart_Receive(&gsmHandle, &gGsmByte, 1);
+	if(PORT_UART_FN_STATUS_OK != ret){
+		goto __exit_point;
+	}
+	if(gGsmCbId == PORT_UART_CB_ID_XFER_ERR){
+		ret = PORT_UART_FN_STATUS_ERR;
+		goto __exit_point;
+	}
+	while(timeoutMs--){
+		if(gGsmCbId == PORT_UART_CB_ID_RX_CMPLT){
+			osDelay(2);	//introduced offset
+			timeoutMs -= 2;
+			if(port_uart_IsRxDataPending(&gsmHandle)){
+				gGsmCbId = PORT_UART_CB_ID_UNDEF;
+			}else{
+				break;
+			}
+		}
+		if(0 == timeoutMs){
+			ret = PORT_UART_FN_STATUS_TIMEOUT;
+			goto __exit_point;
+		}
+		osDelay(1);
+	}
+//	service_queue_PrintInfo(&gGsmQueue);
+	service_queue_DequeToTarget(&gGsmQueue, rxBuff, buffSize);
+	printf("Recvd data : %s\r\n", rxBuff);
+	__exit_point:
+	if(ret != 0){
+		printf("failed status = %d\r\n", ret);
+	}
+	return ret;
+}
+
+__attribute__((unused)) static port_uart_fnStatus_t GpsCommander(uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t buffSize, uint16_t timeoutMs)
+{
+	return PORT_UART_FN_STATUS_INVALID_ARG;
 }
 
 uint8_t HandleTest(uint8_t *buff, uint16_t buffSize)
@@ -209,7 +225,7 @@ uint8_t HandleTest(uint8_t *buff, uint16_t buffSize)
 	(void)(buffSize);
 	uint8_t rxBuff[10+1];
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_TEST, strlen(AT_TEST), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_TEST, strlen(AT_TEST), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;	//success
 		}
@@ -225,7 +241,7 @@ uint8_t HandleGetImsi(uint8_t *buff, uint16_t buffSize)
 	}
 	uint8_t rxBuff[ATC_IMSI_MAX_LEN + 10];	//IMSI\r\nOK\r\n
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_IMSI, strlen(AT_IMSI), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_IMSI, strlen(AT_IMSI), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			sscanf((char*)rxBuff+2, "%s\r\n", (char*)buff);
 			if(buff[0] != '\0'){
@@ -244,7 +260,7 @@ uint8_t HandleGetIccid(uint8_t *buff, uint16_t buffSize)
 	}
 	uint8_t rxBuff[ATC_ICCID_MAX_LEN + 10];	//IMSI\r\nOK\r\n
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_ICCID, strlen(AT_ICCID), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_ICCID, strlen(AT_ICCID), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+ICCID")){
 			sscanf((char*)rxBuff+2, "+ICCID: %s\r\n", (char*)buff);
 			if(1 == atc_utils_IsDigitBuff(buff, strlen((char*)buff))){
@@ -263,7 +279,7 @@ uint8_t HandleGetModemInfo(uint8_t *buff, uint16_t buffSize)
 	}
 	uint8_t rxBuff[ATC_MODEM_INFO_MAX_LEN];
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_MODEM_INFO, strlen(AT_MODEM_INFO), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_MODEM_INFO, strlen(AT_MODEM_INFO), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+CGMM")){
 			sscanf((char*)rxBuff+2, "+CGMM: %s\r\n", (char*)buff);
 			return 1;
@@ -279,7 +295,7 @@ uint8_t HandleGetNwRegStatus(uint8_t *buff, uint16_t buffSize)
 	(void)(buffSize);
 	uint8_t rxBuff[20];
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_NW_REG, strlen(AT_NW_REG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_NW_REG, strlen(AT_NW_REG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+CREG")){
 			sscanf((char*)rxBuff+2, "+CREG: %s\r\n", (char*)buff);
 			if((NULL != strstr((char*)rxBuff, "0,1")) || (NULL != strstr((char*)rxBuff, "0,5"))){
@@ -295,7 +311,7 @@ uint8_t HandleCheckNwRssi(uint8_t *buff, uint16_t buffSize)
 	LOG_V("[%s]\r\n", __func__);
 	uint8_t rxBuff[20];
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_RSSI, strlen(AT_RSSI), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_RSSI, strlen(AT_RSSI), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+CSQ")){
 			int val = 999, err = 999;
 			sscanf((char*)rxBuff+2, "+CSQ: %d,%d\r\n", &val, &err);
@@ -316,7 +332,7 @@ uint8_t HandleGetNwOperatorName(uint8_t *buff, uint16_t buffSize)
 	LOG_V("[%s]\r\n", __func__);
 	uint8_t rxBuff[50];
 	memset(rxBuff, 0, sizeof(rxBuff));
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_NW_OP_NAME, strlen(AT_NW_OP_NAME), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_NW_OP_NAME, strlen(AT_NW_OP_NAME), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+COPS")){
 			int mode = 999;
 			int opNameFormat = 999;
@@ -343,7 +359,7 @@ uint8_t HandleNetworkDeregister(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[10] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_NW_DEREG, strlen(AT_NW_DEREG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_NW_DEREG, strlen(AT_NW_DEREG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;
 		}
@@ -357,7 +373,7 @@ uint8_t HandleNetworkReRegister(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[10] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_NW_REREG, strlen(AT_NW_REREG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_NW_REREG, strlen(AT_NW_REREG), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;
 		}
@@ -376,7 +392,7 @@ uint8_t HandleSimChannelCheck(uint8_t *buff, uint16_t buffSize)
 {
 	LOG_V("[%s]\r\n", __func__);
 	uint8_t rxBuff[20] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_SIM_CHANNEL_GET, strlen(AT_SIM_CHANNEL_GET), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_SIM_CHANNEL_GET, strlen(AT_SIM_CHANNEL_GET), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "AT^SIMSWAP:")){
 			sscanf((char*)rxBuff, "AT^SIMSWAP:%c", &buff[0]);
 			if((buff[0] == '0' || buff[0] == '1')&& (buffSize >= 1)){
@@ -393,7 +409,7 @@ uint8_t HandleSimSwapEsim(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[50] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_SIMSWAP_ESIM, strlen(AT_SIMSWAP_ESIM), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_SIMSWAP_ESIM, strlen(AT_SIMSWAP_ESIM), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;
 		}
@@ -407,7 +423,7 @@ uint8_t HandleSimSwapExtSim(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[50] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_SIMSWAP_USIM, strlen(AT_SIMSWAP_USIM), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_SIMSWAP_USIM, strlen(AT_SIMSWAP_USIM), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;
 		}
@@ -421,7 +437,7 @@ uint8_t HandleHubbleRegStatus(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[50] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_HUBBLE_REG_STATUS, strlen(AT_HUBBLE_REG_STATUS), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_HUBBLE_REG_STATUS, strlen(AT_HUBBLE_REG_STATUS), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "+HUBBLEREG: REGISTERED")){
 			return 1;
 		}
@@ -435,7 +451,7 @@ uint8_t HandleModemReboot(uint8_t *buff, uint16_t buffSize)
 	(void)(buff);
 	(void)(buffSize);
 	uint8_t rxBuff[10] = {0};
-	if(PORT_UART_FN_STATUS_OK == Commander(ATC_LTE_MODULE, (uint8_t*)AT_REBOOT, strlen(AT_REBOOT), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
+	if(PORT_UART_FN_STATUS_OK == GsmCommander((uint8_t*)AT_REBOOT, strlen(AT_REBOOT), rxBuff, sizeof(rxBuff)-1, DEF_TIMEOUT_MS)){
 		if(NULL != strstr((char*)rxBuff, "OK")){
 			return 1;
 		}

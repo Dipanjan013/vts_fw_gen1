@@ -53,6 +53,15 @@ service_queue_fnStatus_t service_queue_Dequeue(service_queue_t *q, uint8_t  *val
 	return SERVICE_QUEUE_FN_STATUS_OK;
 }
 
+void service_queue_DequeToTarget(service_queue_t *q, uint8_t *targetBuff, uint16_t buffSize)
+{
+	for(uint16_t i = 0; i < buffSize; i++){
+		if(SERVICE_QUEUE_FN_STATUS_EMPTY == service_queue_Dequeue(q, &targetBuff[i])){
+			return;
+		}
+	}
+}
+
 void service_queue_Reset(service_queue_t *q)
 {
 	memset(q, 0, sizeof(service_queue_t));

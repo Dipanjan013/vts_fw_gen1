@@ -32,7 +32,7 @@ port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl);
 port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen);
 port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rxBuff, uint16_t buffSize);
 void port_uart_AbortXfer(port_uart_handle_t *uartHndl);
-void port_uart_AbortRxCallback(port_uart_handle_t *uartHndl);
+uint8_t port_uart_IsRxDataPending(port_uart_handle_t *uartHndl);
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id);
 port_uart_fnStatus_t port_uart_DeInit(port_uart_handle_t *uartHndl);
 
