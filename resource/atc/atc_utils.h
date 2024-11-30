@@ -12,5 +12,6 @@
 
 uint8_t atc_utils_IsDigitBuff(uint8_t *buff, uint16_t size);
 int16_t atc_utils_MapSQ(int val);
+void atc_utils_CopyDigitsFromBuff(uint8_t *pSrcBuff, uint16_t srcBuffSize, uint8_t *pDestBuff, uint16_t destBuffSize);
 
 #endif /* ATC_ATC_UTILS_H_ */

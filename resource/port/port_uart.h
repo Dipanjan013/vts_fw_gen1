@@ -29,7 +29,7 @@ typedef enum port_uart_tagCbID{
 typedef UART_HandleTypeDef port_uart_handle_t;
 
 port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl);
-port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen);
+port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen, uint16_t timeoutMs);
 port_uart_fnStatus_t port_uart_Receive(port_uart_handle_t *uartHndl, uint8_t *rxBuff, uint16_t buffSize);
 void port_uart_AbortXfer(port_uart_handle_t *uartHndl);
 uint8_t port_uart_IsRxDataPending(port_uart_handle_t *uartHndl);

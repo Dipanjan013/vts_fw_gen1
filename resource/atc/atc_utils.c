@@ -44,3 +44,19 @@ int16_t atc_utils_MapSQ(int val)
 	}
 	return rssi;
 }
+
+void atc_utils_CopyDigitsFromBuff(uint8_t *pSrcBuff, uint16_t srcBuffSize, uint8_t *pDestBuff, uint16_t destBuffSize)
+{
+	if (!pSrcBuff || !pDestBuff) {
+		return;
+	}
+	uint16_t index = 0;
+	for(uint16_t i = 0; i < srcBuffSize; i++){
+		if((pSrcBuff[i] >= 0x30) && (pSrcBuff[i] <= 0x39)){
+			pDestBuff[index++] = pSrcBuff[i];
+			if(index == destBuffSize){
+				return;
+			}
+		}
+	}
+}

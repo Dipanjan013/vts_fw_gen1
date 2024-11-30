@@ -60,9 +60,10 @@ port_uart_fnStatus_t port_uart_Init(port_uart_handle_t *uartHndl)
 	}
 }
 
-port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen)
+port_uart_fnStatus_t port_uart_Transmit(port_uart_handle_t *uartHndl, uint8_t *txBuff, uint16_t txLen, uint16_t timeoutMs)
 {
-	HAL_StatusTypeDef ret = HAL_UART_Transmit_IT(uartHndl, txBuff, txLen);
+//	HAL_StatusTypeDef ret = HAL_UART_Transmit_IT(uartHndl, txBuff, txLen);
+	HAL_StatusTypeDef ret = HAL_UART_Transmit(uartHndl, txBuff, txLen, timeoutMs);
 	switch(ret){
 		case HAL_OK:
 			return PORT_UART_FN_STATUS_OK;
