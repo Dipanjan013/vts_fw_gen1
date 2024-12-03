@@ -83,6 +83,12 @@ static uint8_t HandleCheckNwRssi(uint8_t *buff, uint16_t buffSize);
 static uint8_t HandleGetNwOperatorName(uint8_t *buff, uint16_t buffSize);
 static uint8_t HandleNetworkDeregister(uint8_t *buff, uint16_t buffSize);
 static uint8_t HandleNetworkReRegister(uint8_t *buff, uint16_t buffSize);
+static uint8_t HandleMqttCreate(uint8_t *buff, uint16_t buffSize);
+static uint8_t HandleMqttConnect(uint8_t *buff, uint16_t buffSize);
+static uint8_t HandleMqttDisconnect(uint8_t *buff, uint16_t buffSize);
+static uint8_t HandleMqttPublish(uint8_t *buff, uint16_t buffSize);
+static uint8_t HandleMqttSubscribe(uint8_t *buff, uint16_t buffSize);
+
 static uint8_t HandleScanAvailableNetworks(uint8_t *buff, uint16_t buffSize);
 static uint8_t HandleSimChannelCheck(uint8_t *buff, uint16_t buffSize);
 static uint8_t HandleSimSwapEsim(uint8_t *buff, uint16_t buffSize);
@@ -116,6 +122,12 @@ static cmdRegisterTable_t cmdRegisterTable[] = {
 	{ATC_NW_REREG, HandleNetworkReRegister},
 	{ATC_NW_SCAN_AVAIL, HandleScanAvailableNetworks},
 
+	{ATC_MQTT_CREATE, NULL},
+	{ATC_MQTT_CONNECT, NULL},
+	{ATC_MQTT_PUBLISH, NULL},
+	{ATC_MQTT_SUBSCRIBE, NULL},
+	{ATC_MQTT_DISCONNECT, NULL},
+
 	{ATC_SIM_CHANNEL_CHECK, HandleSimChannelCheck}, // SIM Card Commands
 	{ATC_SIM_SWAP_ESIM, HandleSimSwapEsim},
 	{ATC_SIM_SWAP_EXT_SIM, HandleSimSwapExtSim},
@@ -131,12 +143,14 @@ static cmdRegisterTable_t cmdRegisterTable[] = {
  *************************************************************************************************************************/
 static void PrintMe(uint8_t *buff, uint16_t len)
 {
-	puts("\r\n\tSTART\r\n");
+	printf("[%s] len = %d\r\n", __func__, len);
 	for(uint16_t i=0; i<len; i++){
 //		printf("0x%X ", buff[i]);
+		if(buff[i] == '\r' || buff[i] == '\n')
+			continue;
 		printf("%c", buff[i]);
 	}
-	puts("\r\n\tEND\r\n");
+	printf("\r\n");
 }
 
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
@@ -177,7 +191,7 @@ static uint8_t SendAtCmd(atc_info_t *pInfo,
 	memset(pInfo->buff, 0, ATC_MAX_BUFF_SIZE);
 	pInfo->byte = 0, pInfo->len = 0, pInfo->errCode = 0;
 
-	port_uart_Receive(&pInfo->handle, &pInfo->byte, 1);	//incase communication lost & restored, we must call recv again otherwise it won't be called
+	port_uart_Receive(&pInfo->handle, &pInfo->byte, 1);	//in-case communication lost & restored, we must call recv again otherwise it won't be called
 
 	port_uart_fnStatus_t rc = port_uart_Transmit(&pInfo->handle, (uint8_t*)cmd, cmdLen, timeoutMs);
 	if(rc != PORT_UART_FN_STATUS_OK){
@@ -188,7 +202,15 @@ static uint8_t SendAtCmd(atc_info_t *pInfo,
 			ret = 1;
 			break;
 		}
+		if((pInfo->len > 7) && (NULL != strstr((char*)pInfo->buff, "ERROR"))){
+			break;
+		}
+		if(gGsmAtcInfo.errCode > 0){
+			printf("Err code  : %lu\r\n", gGsmAtcInfo.errCode);
+			goto __exit_point;
+		}
 		if(0 == (timeoutMs-1)){
+			printf("timeout waiting for data\r\n");
 			goto __exit_point;
 		}else{
 			osDelay(1);

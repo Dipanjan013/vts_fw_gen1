@@ -59,6 +59,12 @@ typedef enum atc_tagCmd{
 	//call related commands
 
 	//MQTT commands
+	ATC_MQTT_CREATE,
+	ATC_MQTT_CONNECT,
+	ATC_MQTT_DISCONNECT,
+	ATC_MQTT_PUBLISH,
+	ATC_MQTT_SUBSCRIBE,
+	ATC_MQTT_CONNECT,
 
 	//HTTP commands
 
