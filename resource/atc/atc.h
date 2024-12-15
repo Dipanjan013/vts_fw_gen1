@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #define ATC_MAX_BUFF_SIZE 512
+#define ATC_TX_DATA_MAX_LEN 100
 
 #define ATC_IMSI_MAX_LEN 15
 #define ATC_ICCID_MAX_LEN 22
@@ -19,25 +20,11 @@
 #define ATC_NW_OP_CODE_MAX_LEN 6
 
 typedef enum atc_tagFnStatus{
+	ATC_FN_STATUS_ERR_PARAM = -3,
 	ATC_FN_STATUS_TIMEOUT = -2,
 	ATC_FN_STATUS_FAIL = -1,
 	ATC_FN_STATUS_OK = 0,
 }atc_fnStatus_t;
-
-typedef enum atc_tag_module{
-	ATC_GPS_MODULE = 1,
-	ATC_LTE_MODULE,
-}atc_module_t;
-
-typedef struct atc_tagLookUpTbl{
-	const char *cmd;
-	const char *response;
-}atc_lookUpTbl_t;
-
-typedef struct atc_tagData{
-	uint8_t data[ATC_MAX_BUFF_SIZE+1];
-	uint16_t len;
-}atc_data_t;
 
 typedef enum atc_tagCmd{
 	//basic commands
@@ -83,11 +70,17 @@ typedef enum atc_tagCmd{
 
 	//user-defined commands
 
-	ATC_MAX
+	ATC_MAX = 0xFF,
 }atc_cmd_t;
 
+typedef struct tagAtcData{
+	atc_cmd_t cmd;
+	char txData[ATC_TX_DATA_MAX_LEN + 1];
+	char rxData[ATC_MAX_BUFF_SIZE + 1];
+}atc_data_t;
+
 int8_t atc_Init(void);
-uint8_t atc_CmdLookUpTable(atc_cmd_t cmd, uint8_t *buff, uint16_t len);
+atc_fnStatus_t atc_Commander(port_uart_handle_t *huart, atc_data_t *pData);
 int8_t atc_DeInit(void);
 
 #endif /* ATC_ATC_H_ */
