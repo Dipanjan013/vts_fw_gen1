@@ -16,11 +16,6 @@ __WEAK void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 	(void)(id);
 }
 
-void USART1_IRQHandler(void)
-{
-  HAL_UART_IRQHandler(&gGsmAtcInfo.handle);
-}
-
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	port_uart_Callback(huart, PORT_UART_CB_ID_TX_CMPLT);

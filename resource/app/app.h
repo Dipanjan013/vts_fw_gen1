@@ -8,10 +8,10 @@
 #ifndef APP_APP_H_
 #define APP_APP_H_
 
+#include <atc1.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "atc.h"
 
 typedef struct app_tagEventparam{
 	int16_t event;
