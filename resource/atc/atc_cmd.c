@@ -5,6 +5,8 @@
  *      Author: Dipan
  */
 #include "atc_cmd.h"
+#include <stddef.h>
+#include <string.h>
 
 static atc_cmdTable_t atc_cmdTable[] = {
 	// Basic commands
@@ -41,36 +43,24 @@ static atc_cmdTable_t atc_cmdTable[] = {
 	{ATC_MAX, ATC_MAX_CMD}
 };
 
-static atc_respTable_t atc_RespTable[] = {
-	{OK, "OK"},
-	{ERROR, "ERROR"},
+static atc_unsolResp_t gUnsolResp[] = {
+	{ATC_RESP_OK, "OK"},
+	{ATC_RESP_ERROR, "ERROR"},
+	{ATC_RESP_CREG, "+CREG"},
+	{ATC_RESP_ICCID, "+ICCID"},
+	{ATC_RESP_CSQ, "+CSQ"},
+	{ATC_RESP_MAX, ""},
 };
 
-uint8_t atc_cmd_SearchDesiredResp(char *sourceStr, atc_response_t desiredResp)
+atc_unsolRespCodes_t atc_LookUpResp(char *pTargetStr)
 {
-	for(atc_response_t i = ATC_RESP_OK; i < ATC_RESP_MAX; i++){
-		if(NULL != strstr(atc_RespTable.respStr, sourceStr)){
-			return 1;
+	if(NULL != strstr(pTargetStr, gUnsolResp[ATC_RESP_ERROR].respStr)){
+		return ATC_RESP_ERROR;
+	}
+	for(atc_unsolRespCodes_t i = ATC_RESP_OK; i < ATC_RESP_MAX; i++){
+		if(NULL != strstr(pTargetStr, gUnsolResp[i].respStr)){
+			return gUnsolResp[i].code;
 		}
 	}
-	return 0;
-}
-
-atc_response_t atc_cmd_SearchResponse(char *sourceStr)
-{
-	for(atc_response_t i = ATC_RESP_OK; i < ATC_RESP_MAX; i++){
-		if(NULL != strstr(atc_RespTable.respStr, sourceStr)){
-			return i;
-		}
-	}
-	return ATC_RESP_MAX;
-}
-
-char* atc_cmd_GetCmdStr(atc_cmd_t desiredCmd)
-{
-	if(desiredCmd >= ATC_TEST && desiredCmd < ATC_MAX){
-		return atc_cmdTable.cmdStr;
-	}else{
-		return NULL;
-	}
+	return ATC_RESP_MAX;	//match not found
 }

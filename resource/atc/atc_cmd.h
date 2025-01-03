@@ -8,6 +8,8 @@
 #ifndef ATC_ATC_CMD_H_
 #define ATC_ATC_CMD_H_
 
+#include <stdint.h>
+
 #define CRLF "\r\n"
 
 /****************************************************************
@@ -107,28 +109,28 @@ typedef enum atc_tagCmd{
 	ATC_MAX
 }atc_cmd_t;
 
-/*!
- * @brief All possible response to be considered
- * @note refer source file for the response string
- */
-typedef enum atc_tagResponse{
+typedef enum atc_tagUnsolRespCodes{
 	ATC_RESP_OK = 0,
 	ATC_RESP_ERROR,
-	ATC_RESP_MAX
-}atc_response_t;
+	ATC_RESP_CREG,
+	ATC_RESP_ICCID,
+	ATC_RESP_CSQ,
+	ATC_RESP_CGATT,
+	ATC_RESP_CGMM,
+	ATC_RESP_MAX,
+}atc_unsolRespCodes_t;
 
 typedef struct{
-	atc_cmd_t cmdNum;
-	char *cmdStr;
-}atc_cmdTable_t;
-
-typedef struct{
-	atc_response_t respNum;
+	atc_unsolRespCodes_t code;
 	char *respStr;
-}atc_respTable_t;
+}atc_unsolResp_t;
 
-uint8_t atc_cmd_SearchDesiredResp(char *sourceStr, atc_response_t desiredResp);
-atc_response_t atc_cmd_SearchResponse(char *sourceStr);
-char* atc_cmd_GetCmdStr(atc_cmd_t desiredCmd);
+typedef struct atc_tagRespQueue{
+	uint8_t validRespCnt;
+	atc_unsolRespCodes_t respCode;
+	uint8_t respData[100];
+}atc_respQ_t;
+
+atc_unsolRespCodes_t atc_LookUpResp(char *pTargetStr);
 
 #endif /* ATC_ATC_CMD_H_ */

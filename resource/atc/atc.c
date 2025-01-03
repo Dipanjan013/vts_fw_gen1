@@ -5,17 +5,26 @@
  *      Author: Dipan
  */
 #include "atc.h"
+#include <stdio.h>
+#include <string.h>
 
-port_uart_handle_t gHuart1;
-port_uart_handle_t gHuart2;
+extern port_uart_handle_t gHuart1;
+extern port_uart_handle_t gHuart2;
 
-typedef struct{
-	uint8_t gBuff[ATC_MAX_BUFF_SIZE + 1];
+static atc_respQ_t atcRespQueue[5] = {0};
+
+struct recvDataStruct{
+	uint8_t byte;
 	uint16_t len;
-}recvData_t;
+	uint8_t buffer[512];
+}gRecvData;
 
-static recvData_t gRecvData1 = {0};
-uint8_t gByte1 = 0, gValidDataFlag = 0, gErrorDataFlag = 0;
+static void ClearRecv(port_uart_handle_t *handle)
+{
+	if(handle == (&gHuart1)){
+		memset(&gRecvData, 0, sizeof(gRecvData));
+	}
+}
 
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 {
@@ -24,9 +33,9 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 			break;
 		case PORT_UART_CB_ID_RX_CMPLT:{
 			if(huart == (&gHuart1)){
-				gRecvData1.gBuff[len] = gByte1;
-				gRecvData1.len = (gRecvData1.len + 1) % ATC_MAX_BUFF_SIZE;
-				port_uart_Receive(huart, &gByte1, 1);
+				gRecvData.buffer[len] = gRecvData.byte;
+				gRecvData.len = (gRecvData.len + 1) % ATC_MAX_BUFF_SIZE;
+				port_uart_Receive(huart, &gRecvData.byte, 1);
 			}
 		}break;
 		case PORT_UART_CB_ID_XFER_ERR:
@@ -38,21 +47,24 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 
 atc_fnStatus_t atc_Commander(port_uart_handle_t *handle, atc_data_t *pData, uint16_t timeoutMs)
 {
-	port_uart_fnStatus_t ret = 0;
-	atc_fnStatus_t rc = 0;
+	port_uart_fnStatus_t ret;
+	atc_fnStatus_t rc;
 	timeoutMs = 500;
 	char sendCmd[ATC_TX_DATA_MAX_LEN + 1] = {0};
-	strncpy(sendCmd, atc_cmd_GetCmdStr(pData->cmd), ATC_TX_DATA_MAX_LEN);
-	if(sendCmd[0] == '\0' || handle == NULL || timeoutMs == 0){
-		rc = ATC_FN_STATUS_ERR_PARAM;
+	if(NULL == atc_cmd_LookUpCmdStr(pData->cmd)){
+		printf("[%s] Command not found\r\n", __func__);
+		rc = ATC_FN_STATUS_FAIL;
+		goto __exit_point;
+	}
+	strncpy(sendCmd, atc_cmd_LookUpCmdStr(pData->cmd), ATC_TX_DATA_MAX_LEN);
+	ret = port_uart_Transmit(handle, (uint8_t*)sendCmd, strlen(sendCmd), timeoutMs);
+	if(ret != PORT_UART_FN_STATUS_OK){
+		printf("[%s] Transmit failed (%d)\r\n", __func__, ret);
+		rc = ATC_FN_STATUS_FAIL;
 		goto __exit_point;
 	}
 
-	ret = port_uart_Transmit(handle, (uint8_t*)sendCmd, strlen(sendCmd), timeoutMs);
-	if(ret != PORT_UART_FN_STATUS_OK){
-		return ATC_FN_STATUS_FAIL;
-	}
-
+	//Wait for receive data flags
 	while(timeoutMs--){
 		if(gValidDataFlag){
 			rc = ATC_FN_STATUS_OK;
@@ -64,24 +76,48 @@ atc_fnStatus_t atc_Commander(port_uart_handle_t *handle, atc_data_t *pData, uint
 			rc = ATC_FN_STATUS_TIMEOUT;
 			goto __exit_point;
 		}
-		osDelay(1);
+//		osDelay(1);
+		HAL_Delay(1);
 	}
-
-
+	memcpy(pData->data.rxData, (char*)gRecvData1.gBuff, ATC_MAX_BUFF_SIZE);
+	ClearRecv(handle);
 
 __exit_point:
 	return rc;
 }
 
-void CheckForValidData(void)
+void atc_CheckForValidData(void)
 {
-	static atc_response_t response = 0xFF;
-	if((gRecvData1.len > 2) && (gByte == 0x0A)){	//LF from CRLF
-		response = atc_cmd_SearchResponse((char*)gRecvData1.gBuff);
-		if(response == ATC_RESP_OK){
-			gValidDataFlag = 1;
-		}else if(response == ATC_RESP_ERROR){
-			gErrorDataFlag = 1;
+	static atc_unsolRespCodes_t respCode = ATC_RESP_MAX;
+	printf("test :  in %s\r\n", __func__);
+	while(1){
+		if((gRecvData.len > 2) && (gRecvData.byte == '\n')){
+			respCode = atc_LookUpResp((char*)gRecvData.buffer);
+			if(ATC_RESP_MAX != respCode){	//valid response
+				atcRespQueue[atcRespQueue.validRespCnt].respCode = respCode;
+				memcpy(atcRespQueue[atcRespQueue.validRespCnt].respData, gRecvData.buffer, 100);
+				ClearRecv(&gHuart1);
+				atcRespQueue.validRespCn = (atcRespQueue.validRespCn + 1) % 5;
+			}
 		}
+		HAL_Delay(1);
 	}
+}
+
+uint8_t atc_Init(port_uart_handle_t *handle)
+{
+	port_uart_fnStatus_t ret = 0;
+	if(handle == (&gHuart1)){
+		handle->Instance = USART1;
+		handle->Init.BaudRate = 115200;
+		ClearRecv(&gHuart1);
+	}
+	ret = port_uart_Init(handle);
+	if(PORT_UART_FN_STATUS_OK != ret){
+		return 0;
+	}
+	if(handle == (&gHuart1)){
+		port_uart_Receive(&gHuart1, &gByte1, 1);
+	}
+	return 1;
 }

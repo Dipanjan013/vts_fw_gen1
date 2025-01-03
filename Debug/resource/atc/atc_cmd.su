@@ -1,0 +1,3 @@
+../resource/atc/atc_cmd.c:51:9:atc_cmd_SearchDesiredResp	24	static
+../resource/atc/atc_cmd.c:61:16:atc_cmd_LookUpRespStr	24	static
+../resource/atc/atc_cmd.c:71:7:atc_cmd_LookUpCmdStr	16	static

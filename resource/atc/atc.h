@@ -8,7 +8,6 @@
 #ifndef ATC_ATC_H_
 #define ATC_ATC_H_
 
-#include <stdint.h>
 #include "atc_cmd.h"
 #include "port_uart.h"
 
@@ -30,6 +29,8 @@ typedef struct tagAtcData{
 	}data;
 }atc_data_t;
 
+void atc_CheckForValidData(void);	//better to run this as a task
+uint8_t atc_Init(port_uart_handle_t *handle);
 atc_fnStatus_t atc_Commander(port_uart_handle_t *handle, atc_data_t *pData, uint16_t timeoutMs);
 
 #endif /* ATC_ATC_H_ */

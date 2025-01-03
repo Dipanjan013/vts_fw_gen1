@@ -1,7 +1,6 @@
-resource/atc/atc.o: ../resource/atc/atc.c \
- ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../resource/atc/atc.h ../resource/atc/atc_utils.h \
- E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h \
+resource/atc/atc.o: ../resource/atc/atc.c ../resource/atc/atc.h \
+ ../resource/atc/atc_cmd.h \
+ E:/Dipanjan/st_workspace/vts_fw_gen1/resource/port/port_uart.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -27,12 +26,10 @@ resource/atc/atc.o: ../resource/atc/atc.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- E:/st_workspace/vts_fw_gen1/resource/service/services.h
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 ../resource/atc/atc.h:
-../resource/atc/atc_utils.h:
-E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h:
+../resource/atc/atc_cmd.h:
+E:/Dipanjan/st_workspace/vts_fw_gen1/resource/port/port_uart.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -59,4 +56,3 @@ E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-E:/st_workspace/vts_fw_gen1/resource/service/services.h:
