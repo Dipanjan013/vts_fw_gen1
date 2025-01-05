@@ -4,20 +4,77 @@
  *  Created on: Dec 25, 2024
  *      Author: Dipan
  */
+//! Includes
 #include "atc.h"
 #include <stdio.h>
 #include <string.h>
+#include "cmsis_os2.h"
+
+//! Macros
+
+#define CRLF "\r\n"
+
+/*!********************************************************
+ * 										Transmit commands
+ **********************************************************/
+
+//Basic command
+#define ATC_TEST_CMD "AT"CRLF
+#define ATC_IMSI_CMD "AT+CIMI"CRLF
+#define ATC_ICCID_CMD "AT+ICCID"CRLF
+#define ATC_MODEM_INFO_CMD "AT+CGMM"CRLF
+
+//Network command
+#define ATC_NW_REG_STATUS_CMD "AT+CREG?"CRLF
+#define ATC_NW_RSSI_CHECK_CMD "AT+CSQ"CRLF
+#define ATC_NW_OP_NAME_CMD "AT+COPS?"CRLF
+#define ATC_NW_DEREG_CMD "AT+CGATT=0"CRLF
+#define ATC_NW_REREG_CMD "AT+CGATT=1"CRLF
+#define ATC_NW_SCAN_AVAIL_CMD "AT+COPS=?"CRLF
+
+//MQTT commands
+#define ATC_MQTT_CREATE_CMD "AT+MQTTCREATE"CRLF
+#define ATC_MQTT_CONNECT_CMD "AT+MQTTCONNECT"CRLF
+#define ATC_MQTT_DISCONNECT_CMD "AT+MQTTDISCONNECT"CRLF
+#define ATC_MQTT_PUBLISH_CMD "AT+MQTTPUBLISH"CRLF
+#define ATC_MQTT_SUBSCRIBE_CMD "AT+MQTTSUBSCRIBE"CRLF
+
+//SIM command
+#define ATC_SIM_CHANNEL_CHECK_CMD "AT^SIMSWAP"CRLF
+#define ATC_SIM_SWAP_ESIM_CMD "AT+SIMSWAP=0"CRLF
+#define ATC_SIM_SWAP_EXT_SIM_CMD "AT+SIMSWAP=1"CRLF
+
+//Modem specific command
+#define ATC_CAVLI_HUBBLE_REG_STATUS_CMD "AT+HUBBLEREG?"CRLF
+#define ATC_CAVLI_REBOOT_CMD ""CRLF
+
+#define ATC_MAX_CMD ""
+
+//! Global Variables
 
 extern port_uart_handle_t gHuart1;
 extern port_uart_handle_t gHuart2;
 
-static atc_respQ_t atcRespQueue[5] = {0};
+//! User defined data types
+
+static atc_respQ_t gAtcRespQueue = {0};
 
 struct recvDataStruct{
 	uint8_t byte;
 	uint16_t len;
-	uint8_t buffer[512];
+	uint8_t buffer[ATC_MAX_BUFF_SIZE + 1];
 }gRecvData;
+
+static atc_unsolResp_t gUnsolResp[] = {
+	{ATC_RESP_OK, "OK"},
+	{ATC_RESP_ERROR, "ERROR"},
+	{ATC_RESP_CREG, "+CREG"},
+	{ATC_RESP_ICCID, "+ICCID"},
+	{ATC_RESP_CSQ, "+CSQ"},
+	{ATC_RESP_MAX, ""},
+};
+
+//!************************* Private Functions*******************/
 
 static void ClearRecv(port_uart_handle_t *handle)
 {
@@ -33,7 +90,7 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 			break;
 		case PORT_UART_CB_ID_RX_CMPLT:{
 			if(huart == (&gHuart1)){
-				gRecvData.buffer[len] = gRecvData.byte;
+				gRecvData.buffer[gRecvData.len] = gRecvData.byte;
 				gRecvData.len = (gRecvData.len + 1) % ATC_MAX_BUFF_SIZE;
 				port_uart_Receive(huart, &gRecvData.byte, 1);
 			}
@@ -45,63 +102,24 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 	}
 }
 
-atc_fnStatus_t atc_Commander(port_uart_handle_t *handle, atc_data_t *pData, uint16_t timeoutMs)
+atc_unsolRespCodes_t atc_LookUpResp(char *pTargetStr)
 {
-	port_uart_fnStatus_t ret;
-	atc_fnStatus_t rc;
-	timeoutMs = 500;
-	char sendCmd[ATC_TX_DATA_MAX_LEN + 1] = {0};
-	if(NULL == atc_cmd_LookUpCmdStr(pData->cmd)){
-		printf("[%s] Command not found\r\n", __func__);
-		rc = ATC_FN_STATUS_FAIL;
-		goto __exit_point;
+	if(NULL != strstr(pTargetStr, gUnsolResp[ATC_RESP_ERROR].respStr)){
+		return ATC_RESP_ERROR;
 	}
-	strncpy(sendCmd, atc_cmd_LookUpCmdStr(pData->cmd), ATC_TX_DATA_MAX_LEN);
-	ret = port_uart_Transmit(handle, (uint8_t*)sendCmd, strlen(sendCmd), timeoutMs);
-	if(ret != PORT_UART_FN_STATUS_OK){
-		printf("[%s] Transmit failed (%d)\r\n", __func__, ret);
-		rc = ATC_FN_STATUS_FAIL;
-		goto __exit_point;
-	}
-
-	//Wait for receive data flags
-	while(timeoutMs--){
-		if(gValidDataFlag){
-			rc = ATC_FN_STATUS_OK;
-			break;
-		}else if(gErrorDataFlag){
-			rc = ATC_FN_STATUS_FAIL;
-			goto __exit_point;
-		}else if(timeoutMs == 0){
-			rc = ATC_FN_STATUS_TIMEOUT;
-			goto __exit_point;
+	for(atc_unsolRespCodes_t i = ATC_RESP_OK; i < ATC_RESP_MAX; i++){
+		if(NULL != strstr(pTargetStr, gUnsolResp[i].respStr)){
+			return gUnsolResp[i].code;
 		}
-//		osDelay(1);
-		HAL_Delay(1);
 	}
-	memcpy(pData->data.rxData, (char*)gRecvData1.gBuff, ATC_MAX_BUFF_SIZE);
-	ClearRecv(handle);
-
-__exit_point:
-	return rc;
+	return ATC_RESP_MAX;	//match not found
 }
 
-void atc_CheckForValidData(void)
+static void SaveResponse(atc_unsolRespCodes_t type , uint8_t *data)
 {
-	static atc_unsolRespCodes_t respCode = ATC_RESP_MAX;
-	printf("test :  in %s\r\n", __func__);
-	while(1){
-		if((gRecvData.len > 2) && (gRecvData.byte == '\n')){
-			respCode = atc_LookUpResp((char*)gRecvData.buffer);
-			if(ATC_RESP_MAX != respCode){	//valid response
-				atcRespQueue[atcRespQueue.validRespCnt].respCode = respCode;
-				memcpy(atcRespQueue[atcRespQueue.validRespCnt].respData, gRecvData.buffer, 100);
-				ClearRecv(&gHuart1);
-				atcRespQueue.validRespCn = (atcRespQueue.validRespCn + 1) % 5;
-			}
-		}
-		HAL_Delay(1);
-	}
+	memset(&gAtcRespQueue.respData[gAtcRespQueue.validRespCnt], 0, sizeof());
+	gAtcRespQueue.respData.type = type;
+	memcpy(gAtcRespQueue.respData.data, data, ATC_RX_DATA_MAX_LEN);
 }
 
 uint8_t atc_Init(port_uart_handle_t *handle)
@@ -120,4 +138,28 @@ uint8_t atc_Init(port_uart_handle_t *handle)
 		port_uart_Receive(&gHuart1, &gByte1, 1);
 	}
 	return 1;
+}
+
+static void ResponseCheckerTask(void)
+{
+	while(1){
+		if((gRecvData.len > 2) && (gRecvData.byte == '\n')){
+			//Check for valid response
+			for(atc_unsolRespCodes_t i = ATC_RESP_OK; i < ATC_RESP_MAX; i++){
+				if(NULL != strstr(gRecvData.buffer, gUnsolResp[i].respStr)){
+					printf("Response matched\r\n");
+					SaveResponse();
+				}else{
+					printf("Response didn't match\r\n");
+					ClearRecv();
+				}
+			}
+		}
+		osDelay(1);
+	}
+}
+
+void atc_StartReceiverTask(void)
+{
+
 }
