@@ -76,11 +76,9 @@ static atc_unsolResp_t gUnsolResp[] = {
 
 //!************************* Private Functions*******************/
 
-static void ClearRecv(port_uart_handle_t *handle)
+static void ClearRecv(void)
 {
-	if(handle == (&gHuart1)){
-		memset(&gRecvData, 0, sizeof(gRecvData));
-	}
+	memset(&gRecvData, 0, sizeof(gRecvData));
 }
 
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
@@ -89,11 +87,9 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 		case PORT_UART_CB_ID_TX_CMPLT:
 			break;
 		case PORT_UART_CB_ID_RX_CMPLT:{
-			if(huart == (&gHuart1)){
-				gRecvData.buffer[gRecvData.len] = gRecvData.byte;
-				gRecvData.len = (gRecvData.len + 1) % ATC_MAX_BUFF_SIZE;
-				port_uart_Receive(huart, &gRecvData.byte, 1);
-			}
+			gRecvData.buffer[gRecvData.len] = gRecvData.byte;
+			gRecvData.len = (gRecvData.len + 1) % ATC_MAX_BUFF_SIZE;
+			port_uart_Receive(huart, &gRecvData.byte, 1);
 		}break;
 		case PORT_UART_CB_ID_XFER_ERR:
 			break;
@@ -117,9 +113,9 @@ atc_unsolRespCodes_t atc_LookUpResp(char *pTargetStr)
 
 static void SaveResponse(atc_unsolRespCodes_t type , uint8_t *data)
 {
-	memset(&gAtcRespQueue.respData[gAtcRespQueue.validRespCnt], 0, sizeof());
-	gAtcRespQueue.respData.type = type;
-	memcpy(gAtcRespQueue.respData.data, data, ATC_RX_DATA_MAX_LEN);
+	gAtcRespQueue.respData[gAtcRespQueue.validRespCnt].type = type;
+	memcpy(gAtcRespQueue.respData[gAtcRespQueue.validRespCnt].data, data, ATC_RX_DATA_MAX_LEN);
+
 }
 
 uint8_t atc_Init(port_uart_handle_t *handle)
