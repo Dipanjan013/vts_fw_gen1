@@ -11,6 +11,10 @@ static uint16_t gIndex = 0;
  *
  ******************************************************************************************************************/
 
+intf_ble_unsolRespTable_t unsolRespTable[] = {
+	{INTF_BLE_UNSOL_RESP_NEW_MSG, "+CIMI"},
+};
+
 static void ClearRecv(void)
 {
 	memset(gBuff, 0, sizeof(gBuff));
@@ -92,4 +96,11 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 		ClearRecv();
 	}
 	return INTF_AT_FN_STATUS_OK;
+}
+
+void intf_at_UnsolRespChecker(void)
+{
+	if((gRxByte == '\n') && (gIndex > 2)){
+
+	}
 }

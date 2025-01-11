@@ -19,6 +19,21 @@ typedef enum intf_at_tagFnStatus{
 	INTF_AT_FN_STATUS_TIMEOUT,
 }intf_at_fnStatus_t;
 
+typedef enum{
+	INTF_BLE_UNSOL_RESP_NEW_MSG = 0,
+}intf_ble_unsolResp_t;
+
+typedef struct{
+	uint16_t event;
+	char *str;
+}intf_ble_unsolRespTable_t;
+
+typedef struct{
+	uint16_t event;
+	uint8_t data[100];
+}intf_ble_unsolRespParam_t;
+
+
 intf_at_fnStatus_t intf_at_Init(port_uart_handle_t *handle);
 intf_at_fnStatus_t intf_at_DeInit(port_uart_handle_t *handle);
 intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
@@ -28,5 +43,8 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 								   uint16_t size,
 								   uint8_t *expResp,
 								   uint16_t timeoutMs);
+
+__WEAK void intf_at_UnsolRespCallbac(intf_ble_unsolRespParam_t *pParam);
+void intf_at_UnsolRespChecker(void);
 
 #endif /* INTF_INTF_AT_H_ */
