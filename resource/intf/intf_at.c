@@ -1,25 +1,37 @@
 //!Includes
 #include <string.h>
 #include "intf_at.h"
+#include "port_timer.h"
+
+//! Macro
+
+//! User-defined data type
 
 //! Private variables
 static uint8_t gBuff[INTF_AT_RX_DATA_MAX + 1] = {0};
 static uint8_t gRxByte = 0;
 static uint16_t gIndex = 0;
 
+static uint8_t gUnsolRespCheckerFlag = 0;
+
+intf_ble_unsolRespTable_t gUnsolRespTable[] = {
+	{UNSOL_RESP_CODE_MT_MSG, "+CIMI"},
+};
+
 /*******************************************************************************************************************
  *
  ******************************************************************************************************************/
-
-intf_ble_unsolRespTable_t unsolRespTable[] = {
-	{INTF_BLE_UNSOL_RESP_NEW_MSG, "+CIMI"},
-};
 
 static void ClearRecv(void)
 {
 	memset(gBuff, 0, sizeof(gBuff));
 	gRxByte = 0;
 	gIndex = 0;
+}
+
+static uint8_t IsSubStrPresent(char *substr)
+{
+	return (NULL != strstr((char*)gBuff, substr));
 }
 
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
@@ -62,45 +74,62 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 								   uint16_t cmdLen,
 								   uint8_t *rxBuff,
 								   uint16_t size,
-								   uint8_t *expResp,
+								   char *expResp,
 								   uint16_t timeoutMs)
 {
+	intf_at_fnStatus_t  ret = INTF_AT_FN_STATUS_OK;
+	if(gUnsolRespCheckerFlag){
+		return INTF_AT_FN_STATUS_BUSY;
+	}
 	port_uart_fnStatus_t ret = port_uart_Transmit(handle, cmd, cmdLen, timeoutMs);
 	if(PORT_UART_FN_STATUS_OK != ret){
 		return INTF_AT_FN_STATUS_FAIL;
 	}
-	uint8_t flag = 0;	//1= OK/ <expResp> . 0 = ERROR
-	//Search "OK","ERROR", "<expResp>"
-	char *pSearchStr[3] = {"OK" , "ERROR", expResp};
-	uint8_t searchItems = (NULL == expResp) ? 2 : 3;
 
+	ret = INTF_AT_FN_STATUS_TIMEOUT;
 	while(timeoutMs--){
-		for(uint8_t i = 0; i < searchItems; i++){
-			if(NULL != strstr((char*)gRecvData, pSearchStr[i])){
-				if(i == 0 || i == 2){	// OK or expResp
-					flag = 1;
+		if((gRxByte == '\n') && (gIndex > 2)){
+				if(NULL != expResp){	//when expected response present, only search for this response else general search
+					if(NULL != strstr((char*)gBuff, expResp)){
+							memcpy(rxBuff, gRecvData, size);
+							ret = INTF_AT_FN_STATUS_OK;
+							goto __exit_point;
+					}
+				}else{
+					if(NULL != strstr((char*)gBuff, "OK")){
+							memcpy(rxBuff, gRecvData, size);
+							ret = INTF_AT_FN_STATUS_OK;
+							goto __exit_point;
+					}
+					if(NULL != strstr((char*)gBuff, "ERROR")){
+							memcpy(rxBuff, gRecvData, size);
+							ret = INTF_AT_FN_STATUS_FAIL;
+							goto __exit_point;
+					}
 				}
-				break;
-			}
 		}
-		HAL_Delay(1);
+		port_timer_DelayMs(1);
 	}
-
-	if(timeoutMs == 0){
-		return INTF_AT_FN_STATUS_TIMEOUT;
-	}else if(flag == 0){
-		return INTF_AT_FN_STATUS_FAIL;
-	}
-	else{
-		memcpy(rxBuff, gRecvData, size);
-		ClearRecv();
-	}
-	return INTF_AT_FN_STATUS_OK;
+__exit_point:
+	ClearRecv();
+	return ret;
 }
 
 void intf_at_UnsolRespChecker(void)
 {
+	static const uint16_t numOfItems = sizeof(gUnsolRespTable)/sizeof(intf_ble_unsolRespTable_t);
+	static intf_ble_unsolRespParam_t param = {0};
+	if(!gUnsolRespCheckerFlag){
+		return;
+	}
 	if((gRxByte == '\n') && (gIndex > 2)){
-
+		for(uint16_t i = 0; i < numOfItems; i++){
+			if(NULL != strstr(gBuff, gUnsolRespTable[i].respStr)){
+				memset(&param, 0, sizeof(intf_ble_unsolRespParam_t));
+				param.respCode = gUnsolRespTable[i].respcode;
+				memcpy(param.data, gBuff, INTF_BLE_UNSOL_RESP_DATA_MAX);
+				intf_at_UnsolRespCallback(&param);
+			}
+		}
 	}
 }
