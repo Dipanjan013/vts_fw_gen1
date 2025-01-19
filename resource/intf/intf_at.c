@@ -14,7 +14,7 @@ static uint16_t gIndex = 0;
 
 static uint8_t gUnsolRespCheckerFlag = 0;
 
-intf_ble_unsolRespTable_t gUnsolRespTable[] = {
+static const intf_ble_unsolRespTable_t gUnsolRespTable[] = {
 	{UNSOL_RESP_CODE_MT_MSG, "+CIMI"},
 };
 
@@ -29,7 +29,7 @@ static void ClearRecv(void)
 	gIndex = 0;
 }
 
-static uint8_t IsSubStrPresent(char *substr)
+static inline uint8_t IsSubStrPresent(char *substr)
 {
 	return (NULL != strstr((char*)gBuff, substr));
 }
@@ -74,6 +74,7 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 								   uint16_t cmdLen,
 								   uint8_t *rxBuff,
 								   uint16_t size,
+									 uint8_t saveResp,
 								   char *expResp,
 								   uint16_t timeoutMs)
 {
@@ -90,27 +91,26 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	while(timeoutMs--){
 		if((gRxByte == '\n') && (gIndex > 2)){
 				if(NULL != expResp){	//when expected response present, only search for this response else general search
-					if(NULL != strstr((char*)gBuff, expResp)){
-							memcpy(rxBuff, gRecvData, size);
+					if(IsSubStrPresent(expResp)){
 							ret = INTF_AT_FN_STATUS_OK;
-							goto __exit_point;
+							break;
 					}
 				}else{
-					if(NULL != strstr((char*)gBuff, "OK")){
-							memcpy(rxBuff, gRecvData, size);
+					if(IsSubStrPresent("OK")){
 							ret = INTF_AT_FN_STATUS_OK;
-							goto __exit_point;
+							break;
 					}
-					if(NULL != strstr((char*)gBuff, "ERROR")){
-							memcpy(rxBuff, gRecvData, size);
+					if(IsSubStrPresent("ERROR")){
 							ret = INTF_AT_FN_STATUS_FAIL;
-							goto __exit_point;
+							break;
 					}
 				}
 		}
 		port_timer_DelayMs(1);
 	}
-__exit_point:
+	if(saveResp){
+		memcpy(rxBuff, gBuff, size);
+	}
 	ClearRecv();
 	return ret;
 }
@@ -124,7 +124,7 @@ void intf_at_UnsolRespChecker(void)
 	}
 	if((gRxByte == '\n') && (gIndex > 2)){
 		for(uint16_t i = 0; i < numOfItems; i++){
-			if(NULL != strstr(gBuff, gUnsolRespTable[i].respStr)){
+			if(IsSubStrPresent(gUnsolRespTable[i].respStr)){
 				memset(&param, 0, sizeof(intf_ble_unsolRespParam_t));
 				param.respCode = gUnsolRespTable[i].respcode;
 				memcpy(param.data, gBuff, INTF_BLE_UNSOL_RESP_DATA_MAX);

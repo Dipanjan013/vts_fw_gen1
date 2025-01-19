@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "port_uart.h"
 
+#define INTF_AT_DEFAULT_TIMEOUT_MS 1000
 #define INTF_AT_RX_DATA_MAX 100
 #define INTF_BLE_UNSOL_RESP_DATA_MAX 100
 
@@ -43,6 +44,7 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 								   uint16_t cmdLen,
 								   uint8_t *rxBuff,
 								   uint16_t size,
+									 uint8_t saveResp,
 								   char *expResp,
 								   uint16_t timeoutMs);
 
