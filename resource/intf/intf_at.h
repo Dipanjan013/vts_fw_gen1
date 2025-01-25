@@ -39,6 +39,11 @@ typedef struct{
 
 intf_at_fnStatus_t intf_at_Init(port_uart_handle_t *handle);
 intf_at_fnStatus_t intf_at_DeInit(port_uart_handle_t *handle);
+
+/*!
+ * @brief: Function is used to send the command and wait for the desired response until timeoutMs
+ * If expResp i.e expected response string  is not null, it will search for expResp string. Otherwise only "OK" or "ERROR" is searched
+ */
 intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 								   uint8_t *cmd,
 								   uint16_t cmdLen,
@@ -47,6 +52,11 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 									 uint8_t saveResp,
 								   char *expResp,
 								   uint16_t timeoutMs);
+
+/*!
+ * @brief : This command is used to only send the command.  Unsolicited response can be checked from intf_at_UnsolRespCallback task
+ */
+intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint16_t timeoutMs);
 
 __WEAK void intf_at_UnsolRespCallback(intf_ble_unsolRespParam_t *pParam);
 void intf_at_UnsolRespChecker(void);

@@ -115,6 +115,15 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	return ret;
 }
 
+intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint16_t timeoutMs)
+{
+	port_uart_fnStatus_t ret = port_uart_Transmit(handle, cmd, cmdLen, timeoutMs);
+	if(PORT_UART_FN_STATUS_OK != ret){
+		return INTF_AT_FN_STATUS_FAIL;
+	}
+	return INTF_AT_FN_STATUS_OK;
+}
+
 void intf_at_UnsolRespChecker(void)
 {
 	static const uint16_t numOfItems = sizeof(gUnsolRespTable)/sizeof(intf_ble_unsolRespTable_t);

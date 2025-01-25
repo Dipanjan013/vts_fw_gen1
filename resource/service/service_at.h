@@ -16,6 +16,11 @@
 #define SERVICE_AT_CGMR_STR "AT+CGMR=?\r\n"	//MT model revision
 #define SERVICE_AT_CIMI_STR "AT+CIMI=?\r\n"	//IMSI
 #define SERVICE_AT_CGSN_STR "AT+CGSN=?\r\n"	//IMEI
+/*!
+ * //Complete information returned by module. Includes : Manufacturer, model name, desc, FW ver, HW ver, IMEI
+ * Serial num, part num, date.
+ */
+#define SERVICE_AT_MFG_SPEC_INFO_STR "ATI\r\n"
 #define SERVICE_AT_CCLK_READ_STR "AT+CCLK?\r\n"	//read real time clock of MT
 /*!
  * @note: write real time clock of MT. Append the <time> as  "yy/MM/dd,hh:mm:ss±zz".
@@ -33,8 +38,6 @@
 
 #define SERVICE_AT_CREG_READ_STR "AT+CREG?\r\n"	//Read network registration status
 #define SERVICE_AT_CSQ_STR "AT+CSQ\r\n"	//Read network signal quality  strength
-
-
 
 /*!
  * @brief : Sends "AT" and wait for OK/ERROR response
@@ -57,6 +60,11 @@ uint8_t service_at_GetIMEI(port_uart_handle_t *handle, uint8_t *rxBuff, uint8_t 
 uint8_t service_at_GetICCID(port_uart_handle_t *handle, uint8_t *rxBuff, uint8_t size, uint16_t timeoutMs);
 
 /*!
+ * @brief : Get complete information from the module. Ref - check SERVICE_AT_MFG_SPEC_INFO_STR
+ */
+uint8_t service_at_GetCmpltInfo(port_uart_handle_t *handle, uint8_t *rxBuff, uint8_t size, uint16_t timeoutMs);
+
+/*!
  * @brief : Command to get Modem information
  */
 uint8_t service_at_GetModemInfo(port_uart_handle_t *handle, uint8_t *rxBuff, uint8_t size, uint16_t timeoutMs);
@@ -74,6 +82,5 @@ uint8_t service_at_ManNwSearch(port_uart_handle_t *handle, uint8_t *rxBuff, uint
 uint8_t service_at_DeRegNw(port_uart_handle_t *handle, uint16_t timeoutMs);
 uint8_t service_at_ReRegNw(port_uart_handle_t *handle, uint16_t timeoutMs);
 uint8_t service_at_CheckSimChannel(port_uart_handle_t *handle, uint8_t channel, uint16_t timeoutMs);
-
 
 #endif /* SERVICE_SERVICE_AT_H_ */
