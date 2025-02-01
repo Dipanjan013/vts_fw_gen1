@@ -14,8 +14,8 @@
 #define SERVICE_AT_CGMI_STR "AT+CGMI=?\r\n"	//mfg ID
 #define SERVICE_AT_CGMM_STR "AT+CGMM=?\r\n"	//MT model info
 #define SERVICE_AT_CGMR_STR "AT+CGMR=?\r\n"	//MT model revision
-#define SERVICE_AT_CIMI_STR "AT+CIMI=?\r\n"	//IMSI
-#define SERVICE_AT_CGSN_STR "AT+CGSN=?\r\n"	//IMEI
+#define SERVICE_AT_CIMI_STR "AT+CIMI?\r\n"	//IMSI
+//#define SERVICE_AT_CGSN_STR "AT+CGSN=?\r\n"	//IMEI
 /*!
  * //Complete information returned by module. Includes : Manufacturer, model name, desc, FW ver, HW ver, IMEI
  * Serial num, part num, date.

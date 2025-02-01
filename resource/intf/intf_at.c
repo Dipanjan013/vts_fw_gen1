@@ -1,6 +1,8 @@
 //!Includes
+#include <stdio.h>
 #include <string.h>
 #include "intf_at.h"
+#include "utils.h"
 #include "port_timer.h"
 
 //! Macro
@@ -22,6 +24,24 @@ static const intf_ble_unsolRespTable_t gUnsolRespTable[] = {
  *
  ******************************************************************************************************************/
 
+static inline void DebugPrint(void)
+{
+	printf("\r\n---------DEBUG PRINT BEGIN------\r\n");
+	for(int  i = 0; i < sizeof(gBuff); i++){
+//		if(gBuff[i] == '\r'){
+//			printf("CR");
+//		}else if(gBuff[i] == '\n'){
+//			printf("LF");
+//		}else if(gBuff[i] == '\0'){
+//			continue;
+//		}else{
+//			printf("%c", (char)gBuff[i]);
+//		}
+		printf("%c", (char)gBuff[i]);
+	}
+	printf("\r\n---------DEBUG PRINT END------\r\n");
+}
+
 static void ClearRecv(void)
 {
 	memset(gBuff, 0, sizeof(gBuff));
@@ -31,7 +51,8 @@ static void ClearRecv(void)
 
 static inline uint8_t IsSubStrPresent(char *substr)
 {
-	return (NULL != strstr((char*)gBuff, substr));
+	return MyStrCaseStr((char*)gBuff, substr);
+//	return (NULL != strstr((char*)gBuff, substr));
 }
 
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
@@ -82,35 +103,38 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	if(gUnsolRespCheckerFlag){
 		return INTF_AT_FN_STATUS_BUSY;
 	}
-	port_uart_fnStatus_t ret = port_uart_Transmit(handle, cmd, cmdLen, timeoutMs);
-	if(PORT_UART_FN_STATUS_OK != ret){
+	port_uart_fnStatus_t uartStat = port_uart_Transmit(handle, cmd, cmdLen, timeoutMs);
+	if(PORT_UART_FN_STATUS_OK != uartStat){
 		return INTF_AT_FN_STATUS_FAIL;
 	}
 
+	uint16_t temp = timeoutMs;
 	ret = INTF_AT_FN_STATUS_TIMEOUT;
-	while(timeoutMs--){
+	while(--temp/*timeoutMs--*/){
 		if((gRxByte == '\n') && (gIndex > 2)){
-				if(NULL != expResp){	//when expected response present, only search for this response else general search
-					if(IsSubStrPresent(expResp)){
-							ret = INTF_AT_FN_STATUS_OK;
-							break;
-					}
-				}else{
-					if(IsSubStrPresent("OK")){
-							ret = INTF_AT_FN_STATUS_OK;
-							break;
-					}
-					if(IsSubStrPresent("ERROR")){
-							ret = INTF_AT_FN_STATUS_FAIL;
-							break;
-					}
+			if(NULL != expResp){	//when expected response present, only search for this response else general search
+				if(IsSubStrPresent(expResp)){
+						ret = INTF_AT_FN_STATUS_OK;
+						break;
 				}
+			}else{
+				if(IsSubStrPresent("OK")){
+						ret = INTF_AT_FN_STATUS_OK;
+						break;
+				}
+				if(IsSubStrPresent("ERROR")){
+						ret = INTF_AT_FN_STATUS_FAIL;
+						break;
+				}
+			}
 		}
 		port_timer_DelayMs(1);
+			HAL_Delay(1);
 	}
 	if(saveResp){
 		memcpy(rxBuff, gBuff, size);
 	}
+	DebugPrint();
 	ClearRecv();
 	return ret;
 }

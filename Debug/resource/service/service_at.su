@@ -1,0 +1,12 @@
+../resource/service/service_at.c:6:9:service_at_AT	40	static
+../resource/service/service_at.c:17:9:service_at_GetIMSI	96	static
+../resource/service/service_at.c:30:9:service_at_GetIMEI	96	static
+../resource/service/service_at.c:43:9:service_at_GetICCID	96	static
+../resource/service/service_at.c:56:9:service_at_GetCmpltInfo	352	static
+../resource/service/service_at.c:68:9:service_at_GetModemInfo	64	static
+../resource/service/service_at.c:81:9:service_at_IsNwReg	64	static
+../resource/service/service_at.c:99:9:service_at_CheckSignalStrength	72	static
+../resource/service/service_at.c:115:9:service_at_ManNwSearch	24	static
+../resource/service/service_at.c:121:9:service_at_DeRegNw	16	static
+../resource/service/service_at.c:127:9:service_at_ReRegNw	16	static
+../resource/service/service_at.c:133:9:service_at_CheckSimChannel	16	static

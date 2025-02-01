@@ -11,8 +11,9 @@ RM := rm -rf
 -include sources.mk
 -include resource/service/subdir.mk
 -include resource/port/subdir.mk
--include resource/atc/subdir.mk
+-include resource/intf/subdir.mk
 -include resource/app/subdir.mk
+-include resource/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/subdir.mk
@@ -71,8 +72,8 @@ all: main-build
 main-build: vts_fw_gen1.elf secondary-outputs
 
 # Tool invocations
-vts_fw_gen1.elf vts_fw_gen1.map: $(OBJS) $(USER_OBJS) E:\Dipanjan\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "vts_fw_gen1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\Dipanjan\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="vts_fw_gen1.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+vts_fw_gen1.elf vts_fw_gen1.map: $(OBJS) $(USER_OBJS) E:\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "vts_fw_gen1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="vts_fw_gen1.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

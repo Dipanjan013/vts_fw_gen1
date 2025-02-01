@@ -1,0 +1,4 @@
+../resource/utils.c:6:9:MyStrCaseStr	88	dynamic
+../resource/utils.c:26:6:utils_SafeSscanfStr	64	dynamic
+../resource/utils.c:36:6:utils_CopyDigitsBuff	32	static
+../resource/utils.c:49:9:utils_MapCSQ	24	static

@@ -57,7 +57,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-//extern UART_HandleTypeDef gsmHandle/*huart1*/;
+extern UART_HandleTypeDef gsmUartHndl/*huart1*/;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -185,19 +185,19 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles USART1 global interrupt.
   */
-//void USART1_IRQHandler(void)
-//{
-//  /* USER CODE BEGIN USART1_IRQn 0 */
-//
-//  /* USER CODE END USART1_IRQn 0 */
-//  HAL_UART_IRQHandler(&gsmHandle/*huart1*/);
-//  /* USER CODE BEGIN USART1_IRQn 1 */
-//
-//  /* USER CODE END USART1_IRQn 1 */
-//
-//
-//
-///* USER CODE BEGIN 1 */
-//
-///* USER CODE END 1 */
-//}
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&gsmUartHndl/*huart1*/);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+
+
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */
+}

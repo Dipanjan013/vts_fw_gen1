@@ -12,7 +12,7 @@
 #include "port_uart.h"
 
 #define INTF_AT_DEFAULT_TIMEOUT_MS 1000
-#define INTF_AT_RX_DATA_MAX 100
+#define INTF_AT_RX_DATA_MAX 512
 #define INTF_BLE_UNSOL_RESP_DATA_MAX 100
 
 typedef enum intf_at_tagFnStatus{

@@ -1,5 +1,0 @@
-../resource/atc/atc.c:22:13:ClearRecv	2
-../resource/atc/atc.c:30:6:port_uart_Callback	6
-../resource/atc/atc.c:49:16:atc_Commander	7
-../resource/atc/atc.c:90:6:atc_CheckForValidData	5
-../resource/atc/atc.c:104:9:atc_Init	4
