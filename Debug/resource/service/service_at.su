@@ -1,6 +1,6 @@
 ../resource/service/service_at.c:6:9:service_at_AT	40	static
 ../resource/service/service_at.c:17:9:service_at_GetIMSI	96	static
-../resource/service/service_at.c:30:9:service_at_GetIMEI	96	static
+../resource/service/service_at.c:30:9:service_at_GetIMEI	352	static
 ../resource/service/service_at.c:43:9:service_at_GetICCID	96	static
 ../resource/service/service_at.c:56:9:service_at_GetCmpltInfo	352	static
 ../resource/service/service_at.c:68:9:service_at_GetModemInfo	64	static

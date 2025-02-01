@@ -49,12 +49,6 @@ static void ClearRecv(void)
 	gIndex = 0;
 }
 
-static inline uint8_t IsSubStrPresent(char *substr)
-{
-	return MyStrCaseStr((char*)gBuff, substr);
-//	return (NULL != strstr((char*)gBuff, substr));
-}
-
 void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 {
 	(void)(huart);
@@ -113,16 +107,16 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	while(--temp/*timeoutMs--*/){
 		if((gRxByte == '\n') && (gIndex > 2)){
 			if(NULL != expResp){	//when expected response present, only search for this response else general search
-				if(IsSubStrPresent(expResp)){
+				if(utils_MyStrCaseStr((char*)gBuff, expResp)){
 						ret = INTF_AT_FN_STATUS_OK;
 						break;
 				}
 			}else{
-				if(IsSubStrPresent("OK")){
+				if(NULL != strstr((char*)gBuff, "OK")){
 						ret = INTF_AT_FN_STATUS_OK;
 						break;
 				}
-				if(IsSubStrPresent("ERROR")){
+				if(NULL != strstr((char*)gBuff, "ERROR")){
 						ret = INTF_AT_FN_STATUS_FAIL;
 						break;
 				}
@@ -157,7 +151,7 @@ void intf_at_UnsolRespChecker(void)
 	}
 	if((gRxByte == '\n') && (gIndex > 2)){
 		for(uint16_t i = 0; i < numOfItems; i++){
-			if(IsSubStrPresent(gUnsolRespTable[i].respStr)){
+			if(NULL != strstr((char*)gBuff, gUnsolRespTable[i].respStr)/*utils_MyStrCaseStr((char*)gBuff, gUnsolRespTable[i].respStr)*/){
 				memset(&param, 0, sizeof(intf_ble_unsolRespParam_t));
 				param.respCode = gUnsolRespTable[i].respcode;
 				memcpy(param.data, gBuff, INTF_BLE_UNSOL_RESP_DATA_MAX);

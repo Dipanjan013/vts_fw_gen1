@@ -11,12 +11,24 @@
 #include <stdint.h>
 
 /**
- * @brief Function to find substring in main using strstr
+ * @brief Function to find substring in main using strstr (case incensitive)
  * @note : This converts the main str and sub str to upper case 1st and then  uses strstr (bcoz strstr is case sensitive)
  * Always provide null terminated strings
  * @return : 1 if found else 0 if not
  */
-uint8_t MyStrCaseStr(char *pMainStr, char *pSubStr);
+uint8_t utils_MyStrCaseStr(char *pMainStr, char *pSubStr);
+
+/**
+ * @brief Function to extract values from a string buffer given the start the substring and end substring.
+ * @note: It will extract the value if the start sub string is found! If end sub-string not found, it will copy until null/target buffer size
+ * @param pMainStr - Main character buffer
+ * @param pSubStrStart - Sub string start
+ * @param pSubStrEnd - sub string end
+ * @param pTargetBuff - Buffer where extracted value will be copied
+ * @param size - size of the target buffer size
+ * @return 1 when success or 0 if fail
+ */
+uint8_t utils_StrParser(char *pMainStr, char *pSubStrStart, char *pSubStrEnd, char *pTargetBuff, uint16_t size);
 
 /*!
  * @brief : This function is used for single string extraction only using sscanf through which buffer over-flow risk is handled

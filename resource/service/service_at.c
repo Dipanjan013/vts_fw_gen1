@@ -36,8 +36,7 @@ uint8_t service_at_GetIMEI(port_uart_handle_t *handle, uint8_t *rxBuff, uint8_t 
 	if(INTF_AT_FN_STATUS_OK != ret){
 		return 0;
 	}
-	char *pImei = strstr((char*)temp, "IMEI");
-	utils_CopyDigitsBuff(temp, rxBuff, size);
+	utils_StrParser((char*)temp, "IMEI: ", "\r", (char*)rxBuff, size);
 	return 1;
 }
 

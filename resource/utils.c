@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include "utils.h"
 
-uint8_t MyStrCaseStr(char *pMainStr, char *pSubStr)
+uint8_t utils_MyStrCaseStr(char *pMainStr, char *pSubStr)
 {
     char UpMainStr[strlen(pMainStr)+1];
     char UpSubStr[strlen(pSubStr)+1];
@@ -21,6 +21,28 @@ uint8_t MyStrCaseStr(char *pMainStr, char *pSubStr)
         pSubStr++;
     }
     return (NULL != strstr(UpMainStr, UpSubStr));
+}
+
+uint8_t utils_StrParser(char *pMainStr, char *pSubStrStart, char *pSubStrEnd, char *pTargetBuff, uint16_t size)
+{
+    char *ptr = strstr(pMainStr, pSubStrStart);
+    uint16_t len = 0;
+    if(NULL != ptr){
+        ptr+=strlen(pSubStrStart);  //start of the actual value to be copied
+        char *ptr2 = strstr(ptr, pSubStrEnd);
+        if(NULL != ptr2){
+            len = ptr2 - ptr;
+        }else{
+            len = strlen(pMainStr) - (ptr - pMainStr);
+        }
+        if(len <= size){
+            strncpy(pTargetBuff, ptr, len);
+        }else{
+            strncpy(pTargetBuff, ptr, size);
+        }
+        return 1;
+    }
+    return 0;
 }
 
 void utils_SafeSscanfStr(char *source, uint16_t sourceSize, char *target, uint16_t targetSize, char *format)
