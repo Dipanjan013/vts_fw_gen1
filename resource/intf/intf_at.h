@@ -13,7 +13,7 @@
 
 #define INTF_AT_DEFAULT_TIMEOUT_MS 1000
 #define INTF_AT_RX_DATA_MAX 512
-#define INTF_BLE_UNSOL_RESP_DATA_MAX 100
+#define INTF_AT_UNSOL_RESP_DATA_MAX 100
 
 typedef enum intf_at_tagFnStatus{
 	INTF_AT_FN_STATUS_OK,
@@ -33,7 +33,7 @@ typedef struct{
 
 typedef struct{
 	uint16_t respCode;
-	uint8_t data[INTF_BLE_UNSOL_RESP_DATA_MAX + 1];
+	uint8_t data[INTF_AT_UNSOL_RESP_DATA_MAX + 1];
 }intf_ble_unsolRespParam_t;
 
 
@@ -59,6 +59,18 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint16_t timeoutMs);
 
 __WEAK void intf_at_UnsolRespCallback(intf_ble_unsolRespParam_t *pParam);
+
+/**
+ * @brief This is a unsolicited response checker task that can be run in a super loop or a task.
+ * @note - If this is running, intf_at_Command() API cannot be used at the same  time.. Only send command can be given i.e intf_at_SendOnlyCmd
+ * If any unsolicited response data is received and that matches the gUnsolRespTable present in intf_at.c, then intf_at_UnsolRespCallback is executed
+ */
 void intf_at_UnsolRespChecker(void);
+
+/**
+ * @brief Function to set the intf_at_UnsolRespChecker() task to running or not running state
+ * @param flag - based  on 1 or 0, intf_at_UnsolRespChecker() will execute or won't
+ */
+void intf_at_SetUnsolRespChecker(uint8_t flag);
 
 #endif /* INTF_INTF_AT_H_ */

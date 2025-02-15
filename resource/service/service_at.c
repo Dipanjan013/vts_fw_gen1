@@ -3,6 +3,32 @@
 #include <stdio.h>
 #include "utils.h"
 
+typedef uint8_t ()();
+
+typedef struct{
+	service_at_cmd_t type;
+	char *cmdStr;
+}service_at_cmd_s;
+
+service_at_cmd_s gAtCmdSet[AT_MAX] = {
+		"AT\r",
+		"AT+CGMI=?\r",
+		"AT+CGMR=?\r",
+		"AT+CGMM=?\r",
+		"AT+CIMI?\r",
+		"ATI\r",
+		"AT+CCLK?\r",
+		"AT+CCLK=$\r",
+		"AT+MEMSTATUS\r",
+		"AT^SIMSWAP=?\r",
+		"AT^SIMSWAP=0\r",
+		"AT^SIMSWAP=1\r",
+		"AT+CREG?\r",
+		"AT+CSQ\r",
+		"AT+TRB\r",
+		"ATE0\r"
+};
+
 uint8_t service_at_AT(port_uart_handle_t *handle, uint16_t timeoutMs)
 {
 	printf("[%s]\r\n", __func__);
@@ -121,6 +147,7 @@ uint8_t service_at_ManNwSearch(port_uart_handle_t *handle, uint8_t *rxBuff, uint
 uint8_t service_at_DeRegNw(port_uart_handle_t *handle, uint16_t timeoutMs)
 {
 	printf("[%s]\r\n", __func__);
+
 	return 1;
 }
 

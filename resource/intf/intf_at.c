@@ -102,9 +102,8 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 		return INTF_AT_FN_STATUS_FAIL;
 	}
 
-	uint16_t temp = timeoutMs;
 	ret = INTF_AT_FN_STATUS_TIMEOUT;
-	while(--temp/*timeoutMs--*/){
+	while(timeoutMs--){
 		if((gRxByte == '\n') && (gIndex > 2)){
 			if(NULL != expResp){	//when expected response present, only search for this response else general search
 				if(utils_MyStrCaseStr((char*)gBuff, expResp)){
@@ -123,7 +122,6 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 			}
 		}
 		port_timer_DelayMs(1);
-			HAL_Delay(1);
 	}
 	if(saveResp){
 		memcpy(rxBuff, gBuff, size);
@@ -142,11 +140,16 @@ intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd,
 	return INTF_AT_FN_STATUS_OK;
 }
 
+void intf_at_SetUnsolRespChecker(uint8_t flag)
+{
+	gUnsolRespCheckerFlag = flag;
+}
+
 void intf_at_UnsolRespChecker(void)
 {
 	static const uint16_t numOfItems = sizeof(gUnsolRespTable)/sizeof(intf_ble_unsolRespTable_t);
 	static intf_ble_unsolRespParam_t param = {0};
-	if(!gUnsolRespCheckerFlag){
+	if(!gUnsolRespCheckerFlag){	//won't run unless started using intf_at_SetUnsolRespChecker
 		return;
 	}
 	if((gRxByte == '\n') && (gIndex > 2)){
@@ -156,6 +159,7 @@ void intf_at_UnsolRespChecker(void)
 				param.respCode = gUnsolRespTable[i].respcode;
 				memcpy(param.data, gBuff, INTF_BLE_UNSOL_RESP_DATA_MAX);
 				intf_at_UnsolRespCallback(&param);
+				ClearRecv();
 			}
 		}
 	}

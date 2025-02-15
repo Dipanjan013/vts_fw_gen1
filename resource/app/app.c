@@ -7,16 +7,22 @@
 #define APP_FW_VER "1.0"
 #define APP_FW_NAME "VTS GEN1"
 
-
 //Function prototypes
 
 //User-defined data types
 
 //Private Variables
-/*static*/ port_uart_handle_t gsmUartHndl;	//cavli uart handle
+port_uart_handle_t gsmUartHndl;	//cavli uart handle
 
 /*!********************************************************************************************************
  * ********************************************************************************************************/
+
+void intf_at_UnsolRespCallback(intf_ble_unsolRespParam_t *pParam)
+{
+	printf("[%s]\r\n", __func__);
+	printf("resp code = %d\r\n", pParam->respCode);
+	printf("data = %s\r\n", (char*)pParam->data);
+}
 
 void app_main(void)
 {
@@ -58,14 +64,14 @@ void app_main(void)
 			printf("IMEI failed\r\n");
 		}
 		HAL_Delay(2000);
-//		memset(rxbuff, 0, sizeof(rxbuff));
-//		ret = service_at_GetICCID(&gsmUartHndl, rxbuff, sizeof(rxbuff)-1, INTF_AT_DEFAULT_TIMEOUT_MS);
-//		printf("AT ICCID status %u\r\n", ret);
-//		if(ret){
-//				printf("ICCID = %s\r\n", rxbuff);
-//		}else{
-//			printf("ICCID failed\r\n");
-//		}
+		memset(rxbuff, 0, sizeof(rxbuff));
+		ret = service_at_GetICCID(&gsmUartHndl, rxbuff, sizeof(rxbuff)-1, INTF_AT_DEFAULT_TIMEOUT_MS);
+		printf("AT ICCID status %u\r\n", ret);
+		if(ret){
+				printf("ICCID = %s\r\n", rxbuff);
+		}else{
+			printf("ICCID failed\r\n");
+		}
 		HAL_Delay(2000);
 	}
 }

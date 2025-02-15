@@ -34,7 +34,6 @@
 "./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o"
 "./resource/app/app.o"
 "./resource/intf/intf_at.o"
-"./resource/intf/intf_atUtils.o"
 "./resource/port/port_timer.o"
 "./resource/port/port_uart.o"
 "./resource/service/service_at.o"
