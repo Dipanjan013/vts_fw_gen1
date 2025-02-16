@@ -11,14 +11,14 @@
 #include "intf_at.h"
 
 typedef enum service_at_tagcmdType{
-	AT_TEST,
+	AT_EXE_TEST,
 	AT_READ_MFG_ID,
 	AT_READ_MODEL_REV,
 	AT_READ_MODEL_INFO,
 	AT_READ_IMSI,
 	AT_READ_MFG_INFO,
 	AT_READ_CLK,
-	AT_WRITE_CLK,
+	AT_SET_CLK,
 	AT_READ_ICCID,
 	AT_READ_FREE_MEM,
 	AT_READ_SIM_SLOT,
@@ -26,15 +26,18 @@ typedef enum service_at_tagcmdType{
 	AT_SET_EXTSIM,
 	AT_READ_NW_REG_STAT,
 	AT_READ_CSQ,
-	AT_RESET,
-	AT_ECHO_OFF,
+	AT_EXE_RESET,
+	AT_SET_ECHO,
 	AT_MAX  //end
 }service_at_cmd_t;
 
-uint8_t service_at_Read(service_at_cmd_t type, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-uint8_t service_at_Set();
-uint8_t service_at_Execute();
-uint8_t service_at_Test();
+uint8_t service_at_Set(port_uart_handle_t *handle, service_at_cmd_t type, uint8_t *txBuff, uin16_t size, uint16_t timeoutMs);
+
+//uint8_t service_at_Test(port_uart_handle_t *handle, service_at_cmd_t type, uint16_t timeoutMs);
+
+uint8_t service_at_Read(port_uart_handle_t *handle, service_at_cmd_t type, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+
+uint8_t service_at_Execute(port_uart_handle_t *handle, service_at_cmd_t type, uint16_t timeoutMs);
 
 /*!
  * @brief : Sends "AT" and wait for OK/ERROR response

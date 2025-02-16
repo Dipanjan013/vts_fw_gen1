@@ -3,31 +3,188 @@
 #include <stdio.h>
 #include "utils.h"
 
-typedef uint8_t ()();
+typedef uint8_t (*CmdHandler_t)(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 
 typedef struct{
 	service_at_cmd_t type;
 	char *cmdStr;
+	CmdHandler_t handler;
 }service_at_cmd_s;
 
+static uint8_t CgmiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CgmmHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CgmrHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CimiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t AtiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CclkHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t IccidHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t MemStatusHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t SimStatusHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t SimSwapHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, rxBuff, size, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
+
 service_at_cmd_s gAtCmdSet[AT_MAX] = {
-		"AT\r",
-		"AT+CGMI=?\r",
-		"AT+CGMR=?\r",
-		"AT+CGMM=?\r",
-		"AT+CIMI?\r",
-		"ATI\r",
-		"AT+CCLK?\r",
-		"AT+CCLK=$\r",
-		"AT+MEMSTATUS\r",
-		"AT^SIMSWAP=?\r",
-		"AT^SIMSWAP=0\r",
-		"AT^SIMSWAP=1\r",
-		"AT+CREG?\r",
-		"AT+CSQ\r",
-		"AT+TRB\r",
-		"ATE0\r"
+    {AT_EXE_TEST, "AT\r", NULL},
+    {AT_READ_MFG_ID, "AT+CGMI=?\r", CgmiHandler},
+    {AT_READ_MODEL_REV, "AT+CGMR=?\r", CgmrHandler},
+    {AT_READ_MODEL_INFO, "AT+CGMM=?\r", CgmmHandler},
+    {AT_READ_IMSI, "AT+CIMI?\r", CimiHandler},
+    {AT_READ_MFG_INFO, "ATI\r", AtiHandler},
+    {AT_READ_CLK, "AT+CCLK?\r", CclkHandler},
+    {AT_SET_CLK, "AT+CCLK=$\r", CclkHandler},
+    {AT_READ_ICCID, "AT+ICCID\r", IccidHandler},
+    {AT_READ_FREE_MEM, "AT+MEMSTATUS\r", MemStatusHandler},
+    {AT_READ_SIM_SLOT, "AT^SIMSWAP=?\r", SimSwapHandler},
+    {AT_SET_ESIM, "AT^SIMSWAP=0\r", SimSwapHandler},
+	{AT_SET_EXTSIM, "AT^SIMSWAP=1\r", SimSwapHandler},
+    {AT_READ_NW_REG_STAT, "AT+CREG?\r", CregHandler},
+    {AT_READ_CSQ, "AT+CSQ\r", CsqHandler},
+    {AT_EXE_RESET, "AT+TRB\r", NULL},
+    {AT_SET_ECHO_OFF, "ATE0\r", NULL}
 };
+
+uint8_t service_at_Set(port_uart_handle_t *handle, service_at_cmd_t type, uint8_t *txBuff, uin16_t size, uint16_t timeoutMs)
+{
+	return 1;
+}
+
+uint8_t service_at_Read(port_uart_handle_t *handle, service_at_cmd_t type, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	return gAtCmdSet[type].handler(handle, (uint8_t*)gAtCmdSet[type].cmdStr, strlen(gAtCmdSet[type].cmdStr), rxBuff, size, timeoutMs);
+}
+
+uint8_t service_at_Execute(port_uart_handle_t *handle, service_at_cmd_t type, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, (uint8_t*)gAtCmdSet[type].cmdStr, strlen(gAtCmdSet[type].cmdStr), NULL, 0, 0, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	return 1;
+}
+
 
 uint8_t service_at_AT(port_uart_handle_t *handle, uint16_t timeoutMs)
 {
