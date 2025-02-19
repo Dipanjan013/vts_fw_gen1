@@ -27,7 +27,7 @@ typedef enum service_at_tagcmdType{
 	AT_READ_NW_REG_STAT,
 	AT_READ_CSQ,
 	AT_EXE_RESET,
-	AT_SET_ECHO,
+	AT_EXE_ECHO_OFF,
 	AT_MAX  //end
 }service_at_cmd_t;
 
