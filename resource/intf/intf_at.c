@@ -157,7 +157,7 @@ void intf_at_UnsolRespChecker(void)
 			if(NULL != strstr((char*)gBuff, gUnsolRespTable[i].respStr)/*utils_MyStrCaseStr((char*)gBuff, gUnsolRespTable[i].respStr)*/){
 				memset(&param, 0, sizeof(intf_ble_unsolRespParam_t));
 				param.respCode = gUnsolRespTable[i].respcode;
-				memcpy(param.data, gBuff, INTF_BLE_UNSOL_RESP_DATA_MAX);
+				memcpy(param.data, gBuff, INTF_AT_UNSOL_RESP_DATA_MAX);
 				intf_at_UnsolRespCallback(&param);
 				ClearRecv();
 			}
