@@ -5,16 +5,8 @@
 #include "utils.h"
 
 //Macros
-
-//Function prototype
-static uint8_t CimiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-static uint8_t AtiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-static uint8_t IccidHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-static uint8_t SimSlotHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
-
 typedef uint8_t (*CmdHandler_t)(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+typedef uint8_t (*UnsolCmdHandler_t)(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 // User-defined data type
 typedef struct{
@@ -22,6 +14,24 @@ typedef struct{
 	char *cmdStr;
 	CmdHandler_t handler;
 }service_at_cmd_s;
+
+typedef struct{
+	service_at_unsolResp_t type;
+	char *codeStr;
+	UnsolCmdHandler_t unsolRespHandler;
+}service_at_unsolRespCmd_s;
+
+//Function prototype
+/* Solicited response handlers */
+static uint8_t CimiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t AtiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t IccidHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t SimSlotHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+
+/* Unsolicited response handlers */
+static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 //Global Variables
 
@@ -32,7 +42,7 @@ __attribute__((unused)) port_uart_handle_t gpsUartHndl;
  * @brief Maps the command with their respective handlers for parsing the data
  * For those command which doesn't need to parse the received data, it simply checks for OK or ERROR in the received data. Handler is NULL for those.
  */
-service_at_cmd_s gAtCmdTable[AT_MAX] = {
+static service_at_cmd_s gAtCmdTable[AT_MAX] = {
     {AT_EXE_TEST, "AT\r", NULL},
     {AT_READ_IMSI, "AT+CIMI?\r", CimiHandler},
     {AT_READ_MFG_INFO, "ATI\r", AtiHandler},
@@ -43,7 +53,18 @@ service_at_cmd_s gAtCmdTable[AT_MAX] = {
     {AT_READ_NW_REG_STAT, "AT+CREG?\r", CregHandler},
     {AT_READ_CSQ, "AT+CSQ\r", CsqHandler},
     {AT_EXE_RESET, "AT+TRB\r", NULL},
-    {AT_EXE_ECHO_OFF, "ATE0\r", NULL}
+    {AT_EXE_ECHO_OFF, "ATE0\r", NULL},
+
+		//GPS Commands
+		{AT_EXE_GPS_ON, "AT+CGPS=1\r", NULL},
+		{AT_EXE_GPS_OFF, "AT+CGPS=0\r", NULL},
+		{AT_READ_GPS_STREAM, "AT+GPSPORT=1\r", NULL},
+		{AT_EXE_GPS_STREAM_STOP, "AT+GPSPORT=0\r", NULL},
+};
+
+static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
+		{AT_UNSOL_RESP_SMS, "+CMT", UnsolSmsHandler},
+		{AT_UNSOL_RESP_CALL, "", NULL},
 };
 
 /****************************************************************************************************************************************
@@ -157,6 +178,12 @@ static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 	return 1;
 }
 
+static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
+{
+	service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, cmd, cmdLen);
+	return 1;
+}
+
 uint8_t service_at_Init(void)
 {
 	intf_at_fnStatus_t ret;
@@ -246,5 +273,28 @@ uint8_t service_at_Execute(service_at_uartInst_t instance, service_at_cmd_t type
 		}
 	}else{
 		return pCmdInfo->handler(handle, (uint8_t*)pCmdInfo->cmdStr, strlen(pCmdInfo->cmdStr), NULL, 0, timeoutMs);	//sends the command and "OK" is checked
+	}
+}
+
+void service_at_UnsolRespCheckerTask(service_at_uartInst_t instance)
+{
+	static port_uart_handle_t *handle = NULL;
+	static uint8_t *ptr = NULL;
+	if(instance == SERVICE_AT_UART_INST0){
+			handle = &gsmUartHndl;
+	}else{
+			handle = &gpsUartHndl;
+	}
+	for(uint8_t i = 0; i < AT_UNSOL_RESP_MAX; i++){
+		ptr = intf_at_pUnsolRespChecker(gUnsolRespCmdTable[i].codeStr);
+		if(NULL != ptr){
+			if(gUnsolRespCmdTable[i].unsolRespHandler != NULL){
+				gUnsolRespCmdTable[i].unsolRespHandler(handle, ptr, strlen((char*)ptr));
+				intf_at_ClearUnsolRespChecker();
+			}else{
+				service_at_UnsolRespCallback(gUnsolRespCmdTable[i].type, NULL, 0);
+				intf_at_ClearUnsolRespChecker();
+			}
+		}
 	}
 }

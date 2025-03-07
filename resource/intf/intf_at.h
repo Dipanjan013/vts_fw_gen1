@@ -58,14 +58,17 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
  */
 intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint16_t timeoutMs);
 
-__WEAK void intf_at_UnsolRespCallback(intf_ble_unsolRespParam_t *pParam);
+/**
+ * @brief Function to check the receive buffer have the source string
+ * @param pSourceStr -  String to be checked
+ * @return the buffer if success or NULL
+ */
+uint8_t *intf_at_pUnsolRespChecker(char *pSourceStr);
 
 /**
- * @brief This is a unsolicited response checker task that can be run in a super loop or a task.
- * @note - If this is running, intf_at_Command() API cannot be used at the same  time.. Only send command can be given i.e intf_at_SendOnlyCmd
- * If any unsolicited response data is received and that matches the gUnsolRespTable present in intf_at.c, then intf_at_UnsolRespCallback is executed
+ * @brief : Clears the receive buffer
  */
-void intf_at_UnsolRespChecker(void);
+void intf_at_ClearUnsolRespChecker(void);
 
 /**
  * @brief Function to set the intf_at_UnsolRespChecker() task to running or not running state

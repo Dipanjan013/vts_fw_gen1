@@ -20,27 +20,22 @@ static const intf_ble_unsolRespTable_t gUnsolRespTable[] = {
 	{UNSOL_RESP_CODE_MT_MSG, "+CIMI"},
 };
 
+#define DEBUG_PRINT 0
+extern UART_HandleTypeDef huart2;
+
 /*******************************************************************************************************************
  *
  ******************************************************************************************************************/
-
+#if DEBUG_PRINT
 static inline void DebugPrint(void)
 {
 	printf("\r\n---------DEBUG PRINT BEGIN------\r\n");
 	for(int  i = 0; i < sizeof(gBuff); i++){
-//		if(gBuff[i] == '\r'){
-//			printf("CR");
-//		}else if(gBuff[i] == '\n'){
-//			printf("LF");
-//		}else if(gBuff[i] == '\0'){
-//			continue;
-//		}else{
-//			printf("%c", (char)gBuff[i]);
-//		}
 		printf("%c", (char)gBuff[i]);
 	}
 	printf("\r\n---------DEBUG PRINT END------\r\n");
 }
+#endif
 
 static void ClearRecv(void)
 {
@@ -54,6 +49,9 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 	(void)(huart);
 	switch(id){
 	case PORT_UART_CB_ID_RX_CMPLT:
+#if DEBUG_PRINT
+		HAL_UART_Transmit(&huart2, (uint8_t *)&gRxByte, 1, 0xFFFF);	//TODO : test if this works
+#endif
 		gBuff[gIndex] = gRxByte;
 		gIndex = (gIndex + 1) % INTF_AT_RX_DATA_MAX;
 		port_uart_Receive(huart, &gRxByte, 1);
@@ -126,7 +124,9 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	if(saveResp){
 		memcpy(rxBuff, gBuff, size);
 	}
+#if DEBUG_PRINT
 	DebugPrint();
+#endif
 	ClearRecv();
 	return ret;
 }
@@ -140,27 +140,20 @@ intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd,
 	return INTF_AT_FN_STATUS_OK;
 }
 
+uint8_t *intf_at_pUnsolRespChecker(char *pSourceStr)
+{
+	if(NULL != strstr((char*)gBuff, pSourceStr)){
+			return gBuff;
+	}
+	return NULL;
+}
+
+void intf_at_ClearUnsolRespChecker(void)
+{
+	ClearRecv();
+}
+
 void intf_at_SetUnsolRespChecker(uint8_t flag)
 {
 	gUnsolRespCheckerFlag = flag;
-}
-
-void intf_at_UnsolRespChecker(void)
-{
-	static const uint16_t numOfItems = sizeof(gUnsolRespTable)/sizeof(intf_ble_unsolRespTable_t);
-	static intf_ble_unsolRespParam_t param = {0};
-	if(!gUnsolRespCheckerFlag){	//won't run unless started using intf_at_SetUnsolRespChecker
-		return;
-	}
-	if((gRxByte == '\n') && (gIndex > 2)){
-		for(uint16_t i = 0; i < numOfItems; i++){
-			if(NULL != strstr((char*)gBuff, gUnsolRespTable[i].respStr)/*utils_MyStrCaseStr((char*)gBuff, gUnsolRespTable[i].respStr)*/){
-				memset(&param, 0, sizeof(intf_ble_unsolRespParam_t));
-				param.respCode = gUnsolRespTable[i].respcode;
-				memcpy(param.data, gBuff, INTF_AT_UNSOL_RESP_DATA_MAX);
-				intf_at_UnsolRespCallback(&param);
-				ClearRecv();
-			}
-		}
-	}
 }

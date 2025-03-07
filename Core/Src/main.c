@@ -21,7 +21,7 @@
 #include "app.h"
 
 /* Private variables ---------------------------------------------------------*/
-static UART_HandleTypeDef huart2;
+/*static*/ UART_HandleTypeDef huart2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
