@@ -16,26 +16,12 @@ static uint16_t gIndex = 0;
 
 static uint8_t gUnsolRespCheckerFlag = 0;
 
-static const intf_ble_unsolRespTable_t gUnsolRespTable[] = {
-	{UNSOL_RESP_CODE_MT_MSG, "+CIMI"},
-};
-
-#define DEBUG_PRINT 0
+#define DEBUG_PRINT 1
 extern UART_HandleTypeDef huart2;
 
 /*******************************************************************************************************************
  *
  ******************************************************************************************************************/
-#if DEBUG_PRINT
-static inline void DebugPrint(void)
-{
-	printf("\r\n---------DEBUG PRINT BEGIN------\r\n");
-	for(int  i = 0; i < sizeof(gBuff); i++){
-		printf("%c", (char)gBuff[i]);
-	}
-	printf("\r\n---------DEBUG PRINT END------\r\n");
-}
-#endif
 
 static void ClearRecv(void)
 {
@@ -50,7 +36,7 @@ void port_uart_Callback(port_uart_handle_t *huart, port_uart_cb_id_t id)
 	switch(id){
 	case PORT_UART_CB_ID_RX_CMPLT:
 #if DEBUG_PRINT
-		HAL_UART_Transmit(&huart2, (uint8_t *)&gRxByte, 1, 0xFFFF);	//TODO : test if this works
+		HAL_UART_Transmit(&huart2, (uint8_t *)&gRxByte, 1, 0);
 #endif
 		gBuff[gIndex] = gRxByte;
 		gIndex = (gIndex + 1) % INTF_AT_RX_DATA_MAX;
@@ -124,9 +110,6 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 	if(saveResp){
 		memcpy(rxBuff, gBuff, size);
 	}
-#if DEBUG_PRINT
-	DebugPrint();
-#endif
 	ClearRecv();
 	return ret;
 }
@@ -148,12 +131,18 @@ uint8_t *intf_at_pUnsolRespChecker(char *pSourceStr)
 	return NULL;
 }
 
-void intf_at_ClearUnsolRespChecker(void)
+void intf_at_SetUnsolRespCheckerFlag(uint8_t flag)
 {
 	ClearRecv();
+	gUnsolRespCheckerFlag = flag;
 }
 
-void intf_at_SetUnsolRespChecker(uint8_t flag)
+uint8_t intf_at_GetUnsolRespCheckerFlag(void)
 {
-	gUnsolRespCheckerFlag = flag;
+	return gUnsolRespCheckerFlag;
+}
+
+void intf_at_ClearRecvBuff(void)
+{
+	ClearRecv();
 }

@@ -15,20 +15,26 @@ static enum{
 	APP_STATE_START,
 	APP_STATE_READ_INFO,
 	APP_STATE_READ_NW_REG_STAT,
+	APP_STATE_WAIT_FOR_MSG,
 }gAppState = APP_STATE_START;
 
 
 //Private Variables
 
 
-/*!********************************************************************************************************
+/***********************************************************************************************************
+ * *********************************************************************************************************
  * ********************************************************************************************************/
 
-void intf_at_UnsolRespCallback(intf_ble_unsolRespParam_t *pParam)
+void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len)
 {
 	printf("[%s]\r\n", __func__);
-	printf("resp code = %d\r\n", pParam->respCode);
-	printf("data = %s\r\n", (char*)pParam->data);
+	printf("Response code : %d\r\n", type);
+	if(len > 0){
+		printf("Response Data[%d] : %s\r\n",len, (char*)buff);
+	}else{
+		printf("Empty data\r\n");
+	}
 }
 
 void app_main(void)
@@ -57,8 +63,13 @@ void app_main(void)
 				uint8_t buff[5] = {0};
 				if(service_at_Read(SERVICE_AT_UART_INST0, AT_READ_NW_REG_STAT, buff, 2, 2000)){
 					printf("CREG = %s\r\n", (char*)buff);
-					gAppState = APP_STATE_IDLE;
+					gAppState = APP_STATE_WAIT_FOR_MSG;
+					intf_at_SetUnsolRespCheckerFlag(1);
 				}
+				break;
+
+			case APP_STATE_WAIT_FOR_MSG:
+				service_at_UnsolRespCheckerTask(SERVICE_AT_UART_INST0);
 				break;
 
 			case APP_STATE_IDLE:

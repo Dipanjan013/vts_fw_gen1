@@ -66,14 +66,13 @@ intf_at_fnStatus_t intf_at_SendOnlyCmd(port_uart_handle_t *handle, uint8_t *cmd,
 uint8_t *intf_at_pUnsolRespChecker(char *pSourceStr);
 
 /**
- * @brief : Clears the receive buffer
+ * @brief Based on this flag , unsolicited response checker will run or not run
+ * @param flag - 1 to set as running state or 0 to stop it
  */
-void intf_at_ClearUnsolRespChecker(void);
+void intf_at_SetUnsolRespCheckerFlag(uint8_t flag);
 
-/**
- * @brief Function to set the intf_at_UnsolRespChecker() task to running or not running state
- * @param flag - based  on 1 or 0, intf_at_UnsolRespChecker() will execute or won't
- */
-void intf_at_SetUnsolRespChecker(uint8_t flag);
+uint8_t intf_at_GetUnsolRespCheckerFlag(void);
+
+void intf_at_ClearRecvBuff(void);
 
 #endif /* INTF_INTF_AT_H_ */

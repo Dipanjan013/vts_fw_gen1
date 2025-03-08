@@ -64,7 +64,7 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
 
 static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
 		{AT_UNSOL_RESP_SMS, "+CMT", UnsolSmsHandler},
-		{AT_UNSOL_RESP_CALL, "", NULL},
+		{AT_UNSOL_RESP_CALL, "+RING", NULL},
 };
 
 /****************************************************************************************************************************************
@@ -278,6 +278,10 @@ uint8_t service_at_Execute(service_at_uartInst_t instance, service_at_cmd_t type
 
 void service_at_UnsolRespCheckerTask(service_at_uartInst_t instance)
 {
+	if(!intf_at_GetUnsolRespCheckerFlag()){		// If this flag is not set, the task won't check for unsol response code in the receive buffer. This is used to avoid usage of same buffer for unsol & sol.response code
+		return;
+	}
+
 	static port_uart_handle_t *handle = NULL;
 	static uint8_t *ptr = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
@@ -290,11 +294,10 @@ void service_at_UnsolRespCheckerTask(service_at_uartInst_t instance)
 		if(NULL != ptr){
 			if(gUnsolRespCmdTable[i].unsolRespHandler != NULL){
 				gUnsolRespCmdTable[i].unsolRespHandler(handle, ptr, strlen((char*)ptr));
-				intf_at_ClearUnsolRespChecker();
 			}else{
 				service_at_UnsolRespCallback(gUnsolRespCmdTable[i].type, NULL, 0);
-				intf_at_ClearUnsolRespChecker();
 			}
+			intf_at_ClearRecvBuff();
 		}
 	}
 }
