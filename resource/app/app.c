@@ -15,9 +15,9 @@ static enum{
 	APP_STATE_START,
 	APP_STATE_READ_INFO,
 	APP_STATE_READ_NW_REG_STAT,
+	APP_STATE_READ_GPS_LOC,
 	APP_STATE_WAIT_FOR_MSG,
 }gAppState = APP_STATE_START;
-
 
 //Private Variables
 
@@ -39,6 +39,7 @@ void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, ui
 
 void app_main(void)
 {
+  printf(">>BOOT UP\r\n");
 	printf("%s\r\nFW Ver : %s\r\n", APP_FW_NAME, APP_FW_VER);
 
 	if(!service_at_Init()){
@@ -70,6 +71,9 @@ void app_main(void)
 
 			case APP_STATE_WAIT_FOR_MSG:
 				service_at_UnsolRespCheckerTask(SERVICE_AT_UART_INST0);
+				break;
+
+			case APP_STATE_READ_GPS_LOC:
 				break;
 
 			case APP_STATE_IDLE:

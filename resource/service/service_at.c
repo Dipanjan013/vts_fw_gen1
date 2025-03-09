@@ -32,6 +32,7 @@ static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 
 /* Unsolicited response handlers */
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
+static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 //Global Variables
 
@@ -65,6 +66,7 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
 static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
 		{AT_UNSOL_RESP_SMS, "+CMT", UnsolSmsHandler},
 		{AT_UNSOL_RESP_CALL, "+RING", NULL},
+		{AT_UNSOL_RESP_GPS, "GNRMC", NULL},
 };
 
 /****************************************************************************************************************************************
@@ -179,6 +181,12 @@ static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 }
 
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
+{
+	service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, cmd, cmdLen);
+	return 1;
+}
+
+static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
 {
 	service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, cmd, cmdLen);
 	return 1;

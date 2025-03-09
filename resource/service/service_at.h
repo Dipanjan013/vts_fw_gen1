@@ -47,6 +47,7 @@ typedef enum service_at_tagcmdType{
 typedef enum service_at_tagUnsolResp{
 	AT_UNSOL_RESP_SMS, /**< AT_UNSOL_RESP_SMS */
 	AT_UNSOL_RESP_CALL,/**< AT_UNSOL_RESP_CALL */
+	AT_UNSOL_RESP_GPS,
 	AT_UNSOL_RESP_MAX  /**< AT_UNSOL_RESP_MAX */
 }service_at_unsolResp_t;
 
