@@ -28,3 +28,4 @@
 "./resource/service/service_at.o"
 "./resource/service/service_queue.o"
 "./resource/utils.o"
+"./resource/utils_gps.o"

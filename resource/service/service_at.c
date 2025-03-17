@@ -66,7 +66,7 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
 static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
 		{AT_UNSOL_RESP_SMS, "+CMT", UnsolSmsHandler},
 		{AT_UNSOL_RESP_CALL, "+RING", NULL},
-		{AT_UNSOL_RESP_GPS, "GNRMC", NULL},
+		{AT_UNSOL_RESP_GPS, "RMC", UnsolGpsHandler},
 };
 
 /****************************************************************************************************************************************
@@ -182,13 +182,27 @@ static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
 {
-	service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, cmd, cmdLen);
+	if(cmdLen){
+		uint8_t temp[cmdLen+1];
+		memset(temp, 0, sizeof(cmdLen));
+		memcpy(temp, cmd, cmdLen);
+		service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, temp, cmdLen);
+	}else{
+		service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, NULL, 0);
+	}
 	return 1;
 }
 
 static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
 {
-	service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, cmd, cmdLen);
+	if(cmdLen){
+		uint8_t temp[cmdLen+1];
+		memset(temp, 0, sizeof(cmdLen));
+		memcpy(temp, cmd, cmdLen);
+		service_at_UnsolRespCallback(AT_UNSOL_RESP_GPS, temp, cmdLen);
+	}else{
+		service_at_UnsolRespCallback(AT_UNSOL_RESP_GPS, NULL, 0);
+	}
 	return 1;
 }
 

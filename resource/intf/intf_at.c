@@ -16,7 +16,7 @@ static uint16_t gIndex = 0;
 
 static uint8_t gUnsolRespCheckerFlag = 0;
 
-#define DEBUG_PRINT 1
+#define DEBUG_PRINT 0
 extern UART_HandleTypeDef huart2;
 
 /*******************************************************************************************************************

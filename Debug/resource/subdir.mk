@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../resource/utils.c 
+../resource/utils.c \
+../resource/utils_gps.c 
 
 OBJS += \
-./resource/utils.o 
+./resource/utils.o \
+./resource/utils_gps.o 
 
 C_DEPS += \
-./resource/utils.d 
+./resource/utils.d \
+./resource/utils_gps.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ resource/%.o resource/%.su resource/%.cyclo: ../resource/%.c resource/subdir.mk
 clean: clean-resource
 
 clean-resource:
-	-$(RM) ./resource/utils.cyclo ./resource/utils.d ./resource/utils.o ./resource/utils.su
+	-$(RM) ./resource/utils.cyclo ./resource/utils.d ./resource/utils.o ./resource/utils.su ./resource/utils_gps.cyclo ./resource/utils_gps.d ./resource/utils_gps.o ./resource/utils_gps.su
 
 .PHONY: clean-resource
 
