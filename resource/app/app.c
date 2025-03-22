@@ -8,8 +8,6 @@
 #define APP_FW_VER "1.0"
 #define APP_FW_NAME "VTS GEN1"
 
-//Function prototypes
-
 //User-defined data types
 typedef struct{
 	int state;
@@ -30,6 +28,10 @@ static enum{
 	APP_STATE_READ_GPS_LOC,
 	APP_STATE_WAIT_FOR_MSG,
 }gAppState = APP_STATE_START;
+
+
+//Function prototypes
+typedef void (*StateHandler_t)();
 
 //Private Variables
 static appParam_s gAppParam = {.state = APP_STATE_IDLE};
