@@ -11,7 +11,15 @@
 #include <stdint.h>
 
 typedef struct{
+	uint8_t event;
+	union{
+		struct{
 
+		}gps;
+		struct{
+
+		}cellular;
+	}eventData;
 }app_eventParam_s;
 
 void app_main(void);
