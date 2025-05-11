@@ -298,6 +298,24 @@ uint8_t service_at_Execute(service_at_uartInst_t instance, service_at_cmd_t type
 	}
 }
 
+uint8_t service_at_Test(service_at_uartInst_t instance)
+{
+	port_uart_handle_t *handle = NULL;
+	if(instance == SERVICE_AT_UART_INST0){
+		handle = &gsmUartHndl;
+	}else{
+		handle = &gpsUartHndl;
+	}
+	intf_at_fnStatus_t ret;
+	for(uint8_t retry = 0; retry < 10; retry++){
+		ret = intf_at_Command(handle, (uint8_t*)"AT\r\n", 4, NULL, 0, 0, NULL, SERVICE_AT_DEF_TIMEOUT_MS);
+		if(ret == INTF_AT_FN_STATUS_OK){
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void service_at_UnsolRespCheckerTask(service_at_uartInst_t instance)
 {
 	if(!intf_at_GetUnsolRespCheckerFlag()){		// If this flag is not set, the task won't check for unsol response code in the receive buffer. This is used to avoid usage of same buffer for unsol & sol.response code

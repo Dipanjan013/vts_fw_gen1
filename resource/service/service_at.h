@@ -10,6 +10,8 @@
 
 #include "intf_at.h"
 
+#define SERVICE_AT_DEF_TIMEOUT_MS 1000U
+
 typedef enum service_at_tagUartInstance{
 	SERVICE_AT_UART_INST0 = 0,
 	SERVICE_AT_UART_INST1 = 1,
@@ -57,7 +59,7 @@ uint8_t service_at_Init(void);
 
 uint8_t service_at_Set(service_at_uartInst_t instance, service_at_cmd_t type, uint8_t *txBuff, uint16_t size, uint16_t timeoutMs);
 
-//uint8_t service_at_Test(port_uart_handle_t *handle, service_at_cmd_t type, uint16_t timeoutMs);
+uint8_t service_at_Test(service_at_uartInst_t instance);
 
 uint8_t service_at_Read(service_at_uartInst_t instance, service_at_cmd_t type, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 

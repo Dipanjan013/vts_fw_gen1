@@ -1,5 +1,0 @@
-../resource/utils.c:6:9:utils_MyStrCaseStr	88	dynamic
-../resource/utils.c:26:9:utils_StrParser	40	static
-../resource/utils.c:48:6:utils_SafeSscanfStr	64	dynamic
-../resource/utils.c:58:6:utils_CopyDigitsBuff	32	static
-../resource/utils.c:71:9:utils_MapCSQ	24	static

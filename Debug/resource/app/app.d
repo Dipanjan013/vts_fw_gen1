@@ -1,4 +1,7 @@
-resource/app/app.o: ../resource/app/app.c ../resource/app/app.h \
+resource/app/app.o: ../resource/app/app.c \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ ../resource/app/app.h \
+ E:/st_workspace/vts_fw_gen1/resource/config/config.h \
  E:/st_workspace/vts_fw_gen1/resource/service/service_at.h \
  E:/st_workspace/vts_fw_gen1/resource/intf/intf_at.h \
  E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h \
@@ -27,9 +30,10 @@ resource/app/app.o: ../resource/app/app.c ../resource/app/app.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- E:/st_workspace/vts_fw_gen1/resource/utils_gps.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 ../resource/app/app.h:
+E:/st_workspace/vts_fw_gen1/resource/config/config.h:
 E:/st_workspace/vts_fw_gen1/resource/service/service_at.h:
 E:/st_workspace/vts_fw_gen1/resource/intf/intf_at.h:
 E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h:
@@ -59,4 +63,3 @@ E:/st_workspace/vts_fw_gen1/resource/port/port_uart.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-E:/st_workspace/vts_fw_gen1/resource/utils_gps.h:

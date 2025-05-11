@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -57,6 +57,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LOG_TX_Pin GPIO_PIN_2
+#define LOG_TX_GPIO_Port GPIOA
+#define LOG_RX_Pin GPIO_PIN_3
+#define LOG_RX_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

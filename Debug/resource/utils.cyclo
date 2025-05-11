@@ -1,5 +1,0 @@
-../resource/utils.c:6:9:utils_MyStrCaseStr	5
-../resource/utils.c:26:9:utils_StrParser	4
-../resource/utils.c:48:6:utils_SafeSscanfStr	2
-../resource/utils.c:58:6:utils_CopyDigitsBuff	5
-../resource/utils.c:71:9:utils_MapCSQ	9
