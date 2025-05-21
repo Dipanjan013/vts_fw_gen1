@@ -99,7 +99,6 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 	int rc = 0;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
-			pParam->event = APP_EVENT_INIT;
 			break;
 		case APP_EVENT_INIT:{
 			printf("[%s] Init\r\n", __func__);
@@ -109,7 +108,11 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 					printf("AT Initialization failed\r\n");
 					break;
 				}
-				rc = service_at_Test(SERVICE_AT_UART_INST0);
+				for(int i = 0; i < 10; i++){
+					rc = service_at_Test(SERVICE_AT_UART_INST0);
+					if(rc)
+						break;
+				}
 				if(!rc){
 					printf("Communication failed with Cellular\r\n");
 					break;
@@ -206,6 +209,12 @@ void app_main(void)
 			break;
 		}
 
+		if(!service_at_Init()){
+			printf("AT Initialization failed\r\n");
+			break;
+		}
+		printf("AT Initialized successfully\r\n");
+
 		//Initialize the state machine
 		gAppStateInstance.activeState = AppStatePreOp;
 		gAppStateInstance.nextState = NULL;
@@ -213,11 +222,13 @@ void app_main(void)
 		if(!pParam){
 			break;
 		}
-		pParam->event = APP_EVENT_IDLE;
+		pParam->event = APP_EVENT_INIT;
 		AppPostEvent(pParam);
 		free(pParam);
 		AppDisPatcher();
 	}while(0);
+
+	//Reaching here indicates error at boot-up
 }
 
 //#include <stdio.h>
