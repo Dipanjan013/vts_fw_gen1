@@ -1,18 +1,24 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Toolchain: GNU Tools for STM32 (13.3.rel1)
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../resource/port/port_gpio.c \
+../resource/port/port_led.c \
 ../resource/port/port_timer.c \
 ../resource/port/port_uart.c 
 
 OBJS += \
+./resource/port/port_gpio.o \
+./resource/port/port_led.o \
 ./resource/port/port_timer.o \
 ./resource/port/port_uart.o 
 
 C_DEPS += \
+./resource/port/port_gpio.d \
+./resource/port/port_led.d \
 ./resource/port/port_timer.d \
 ./resource/port/port_uart.d 
 
@@ -24,7 +30,7 @@ resource/port/%.o resource/port/%.su resource/port/%.cyclo: ../resource/port/%.c
 clean: clean-resource-2f-port
 
 clean-resource-2f-port:
-	-$(RM) ./resource/port/port_timer.cyclo ./resource/port/port_timer.d ./resource/port/port_timer.o ./resource/port/port_timer.su ./resource/port/port_uart.cyclo ./resource/port/port_uart.d ./resource/port/port_uart.o ./resource/port/port_uart.su
+	-$(RM) ./resource/port/port_gpio.cyclo ./resource/port/port_gpio.d ./resource/port/port_gpio.o ./resource/port/port_gpio.su ./resource/port/port_led.cyclo ./resource/port/port_led.d ./resource/port/port_led.o ./resource/port/port_led.su ./resource/port/port_timer.cyclo ./resource/port/port_timer.d ./resource/port/port_timer.o ./resource/port/port_timer.su ./resource/port/port_uart.cyclo ./resource/port/port_uart.d ./resource/port/port_uart.o ./resource/port/port_uart.su
 
 .PHONY: clean-resource-2f-port
 

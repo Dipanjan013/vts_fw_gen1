@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "gpio.h"
-//#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal.h"
 
 #define PORT_GPIO_PORT_A GPIOA
 #define PORT_GPIO_PORT_B GPIOB
@@ -38,24 +38,32 @@ typedef enum{
 }port_gpio_fnStatus_e;
 
 typedef enum{
-	PORT_GPIO_MODE_INPUT,
-	PORT_GPIO_MODE_OUTPUT,
+	PORT_GPIO_MODE_INPUT = GPIO_MODE_INPUT,
+	PORT_GPIO_MODE_OUTPUT = GPIO_MODE_OUTPUT_PP,
+	PORT_GPIO_MODE_ANALOG = GPIO_MODE_ANALOG
 }port_gpio_mode_e;
+
+typedef enum{
+	PORT_GPIO_PULL_DOWN = GPIO_PULLDOWN,
+	PORT_GPIO_PULL_UP = GPIO_PULLUP,
+	PORT_GPIO_PULL_OD = GPIO_NOPULL,
+}port_gpio_pull_t;
+
+typedef enum{
+	PORT_GPIO_INTERRUPT_NONE,
+	PORT_GPIO_INTERRUPT_RISE_EDGE,
+	PORT_GPIO_INTERRUPT_FALL_EDGE,
+	PORT_GPIO_INTERRUPT_BOTH_EDGE,
+}port_gpio_interrupt_t;
 
 typedef enum{
 	PORT_GPIO_STATE_SET = GPIO_PIN_SET,
 	PORT_GPIO_STATE_RESET = GPIO_PIN_RESET,
 }port_gpio_state_e;
 
-/*!
- * @fn port_gpio_Init(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_mode_e mode, uint8_t enableIrq);
- * @param port GPIO Port
- * @param pin GPIO Pin
- * @param mode Input/output mode
- * @param enableIrq - For input mode, if interrupt is needed enable this flag
- * @return port_gpio_fnStatus_e
- */
-port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_mode_e mode, uint8_t enableIrq);
+port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_mode_e mode, port_gpio_pull_t type);
+port_gpio_fnStatus_e port_gpio_EnableIrq(port_gpio_interrupt_t type);
+port_gpio_fnStatus_e port_gpio_DisableIrq(port_gpio_port_t port, port_gpio_pin_e pin);
 
 /*!
  * @fn port_gpio_WritePin(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_state_e state);
