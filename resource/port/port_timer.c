@@ -71,7 +71,10 @@ port_timer_fnStatus_t port_timer_DeInit(port_timer_hndle_t handle)
 
 void port_timer_Delay(uint32_t ms)
 {
-	osDelay(ms);
+	while(ms--){
+		osDelay(1);
+	}
+//	osDelay(ms);
 }
 
 uint32_t port_timer_GetMillis(void)

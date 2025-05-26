@@ -1,0 +1,6 @@
+../resource/port/port_gpio.c:3:28:port_gpio_Callback	16	static
+../resource/port/port_gpio.c:8:6:HAL_GPIO_EXTI_Callback	16	static
+../resource/port/port_gpio.c:13:22:port_gpio_Init	48	static
+../resource/port/port_gpio.c:48:6:port_gpio_WritePin	16	static
+../resource/port/port_gpio.c:53:19:port_gpio_ReadPin	16	static
+../resource/port/port_gpio.c:62:6:port_gpio_TogglePin	16	static

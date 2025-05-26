@@ -46,14 +46,13 @@ typedef enum{
 typedef enum{
 	PORT_GPIO_PULL_DOWN = GPIO_PULLDOWN,
 	PORT_GPIO_PULL_UP = GPIO_PULLUP,
-	PORT_GPIO_PULL_OD = GPIO_NOPULL,
+	PORT_GPIO_NO_PULL = GPIO_NOPULL,
 }port_gpio_pull_t;
 
 typedef enum{
-	PORT_GPIO_INTERRUPT_NONE,
-	PORT_GPIO_INTERRUPT_RISE_EDGE,
-	PORT_GPIO_INTERRUPT_FALL_EDGE,
-	PORT_GPIO_INTERRUPT_BOTH_EDGE,
+	PORT_GPIO_INTERRUPT_RISE_EDGE = GPIO_MODE_IT_RISING,
+	PORT_GPIO_INTERRUPT_FALL_EDGE = GPIO_MODE_IT_FALLING,
+	PORT_GPIO_INTERRUPT_BOTH_EDGE = GPIO_MODE_IT_RISING_FALLING,
 }port_gpio_interrupt_t;
 
 typedef enum{
@@ -61,32 +60,32 @@ typedef enum{
 	PORT_GPIO_STATE_RESET = GPIO_PIN_RESET,
 }port_gpio_state_e;
 
-port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_mode_e mode, port_gpio_pull_t type);
+port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t *pPort, port_gpio_pin_e pin, port_gpio_mode_e mode, port_gpio_pull_t type);
 port_gpio_fnStatus_e port_gpio_EnableIrq(port_gpio_interrupt_t type);
 port_gpio_fnStatus_e port_gpio_DisableIrq(port_gpio_port_t port, port_gpio_pin_e pin);
 
 /*!
  * @fn port_gpio_WritePin(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_state_e state);
- * @param port GPIO port
+ * @param *pPort GPIO port
  * @param pin GPIO pin
  * @param state port_gpio_state_e
  */
-void port_gpio_WritePin(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_state_e state);
+void port_gpio_WritePin(port_gpio_port_t *pPort, port_gpio_pin_e pin, port_gpio_state_e state);
 
 /*!
  * @fn port_gpio_ReadPin(port_gpio_port_t port, port_gpio_pin_e pin);
- * @param port GPIO port
+ * @param *pPort GPIO port
  * @param pin GPIO pin
  * @return port_gpio_state_e
  */
-port_gpio_state_e port_gpio_ReadPin(port_gpio_port_t port, port_gpio_pin_e pin);
+port_gpio_state_e port_gpio_ReadPin(port_gpio_port_t *pPort, port_gpio_pin_e pin);
 
 /*!
  * @fn port_gpio_TogglePin(port_gpio_port_t port, port_gpio_pin_e pin);
- * @param port GPIO port
+ * @param *pPort GPIO port
  * @param pin GPIO pin
  */
-void port_gpio_TogglePin(port_gpio_port_t port, port_gpio_pin_e pin);
+void port_gpio_TogglePin(port_gpio_port_t *pPort, port_gpio_pin_e pin);
 
 /*!
  * @fn port_gpio_Callback(port_gpio_pin_e pin);

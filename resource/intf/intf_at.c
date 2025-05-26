@@ -105,7 +105,7 @@ intf_at_fnStatus_t intf_at_Command(port_uart_handle_t *handle,
 				}
 			}
 		}
-		port_timer_DelayMs(1);
+		port_timer_Delay(1);
 	}
 	if(saveResp){
 		memcpy(rxBuff, gBuff, size);

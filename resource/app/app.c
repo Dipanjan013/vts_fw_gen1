@@ -20,6 +20,10 @@ typedef enum{
 typedef enum{
 	APP_EVENT_IDLE,
 	APP_EVENT_INIT,
+	APP_EVENT_FETCH_GPS,
+	APP_EVENT_CONNECT_CELLULAR,
+	APP_EVENT_CONNECT_MQTT,
+	APP_EVENT_SLEEP,
 	APP_EVENT_MAX
 }app_event_e;
 
@@ -37,28 +41,8 @@ struct app_tagStateInstance{
 };
 
 //Function prototypes
-/*!
- * @fn
- * @param pParam
- * @param pInst
- * @return
- */
 static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s *pInst);
-
-/*!
- * @fn
- * @param pParam
- * @param pInst
- * @return
- */
 static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst_s *pInst);
-
-/*!
- * @fn
- * @param pParam
- * @param pInst
- * @return
- */
 static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s *pInst);
 
 /*!

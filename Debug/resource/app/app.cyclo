@@ -1,0 +1,7 @@
+../resource/app/app.c:77:6:AppPostEvent	2
+../resource/app/app.c:86:6:AppPostEventFromIsr	1
+../resource/app/app.c:95:26:AppStatePreOp	11
+../resource/app/app.c:145:26:AppStatePublish	3
+../resource/app/app.c:159:26:AppStateIdle	3
+../resource/app/app.c:173:13:AppDisPatcher	4
+../resource/app/app.c:200:6:app_main	4
