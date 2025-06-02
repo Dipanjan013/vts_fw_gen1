@@ -35,7 +35,6 @@ static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_
 static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 //Global Variables
-
 port_uart_handle_t gsmUartHndl;	//Don't use static as this is used in USART1_IRQHandler
 __attribute__((unused)) port_uart_handle_t gpsUartHndl;
 
@@ -209,7 +208,6 @@ static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_
 uint8_t service_at_Init(void)
 {
 	intf_at_fnStatus_t ret;
-
 	//Initialize the UART handle for CAVLI C16Qs
 	gsmUartHndl.Instance = USART1;
 	gsmUartHndl.Init.BaudRate = 115200;

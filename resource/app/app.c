@@ -58,6 +58,13 @@ static osMessageQueueId_t gQueueHndl;
  *
  ***************************************************************************************************************************/
 
+void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len)
+{
+	(void)(buff);
+	(void)(len);
+	printf("[%s] Type : %d\r\n", __func__, type);
+}
+
 void AppPostEvent(app_eventParam_s *pParam)
 {
 	osStatus_t osStatus = osError;
@@ -87,16 +94,7 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 		case APP_EVENT_INIT:{
 			printf("[%s] Init\r\n", __func__);
 			do{
-				rc = service_at_Init();
-				if(!rc){
-					printf("AT Initialization failed\r\n");
-					break;
-				}
-				for(int i = 0; i < 10; i++){
-					rc = service_at_Test(SERVICE_AT_UART_INST0);
-					if(rc)
-						break;
-				}
+				rc = service_at_Test(SERVICE_AT_UART_INST0);
 				if(!rc){
 					printf("Communication failed with Cellular\r\n");
 					break;
@@ -183,7 +181,7 @@ static void AppDisPatcher(void)
 
 void app_main(void)
 {
-	printf("\r\n\t>>BOOT UP\r\n");
+	printf("\r\n>>BOOT UP\r\n");
 	printf("%s\r\nFW Ver : %s\r\nHW Ver : %s\r\n", CONFIG_FW_NAME, CONFIG_FW_VER, CONFIG_HW_VER);
 
 	do{
@@ -198,6 +196,12 @@ void app_main(void)
 			break;
 		}
 		printf("AT Initialized successfully\r\n");
+		int rc;
+		while(1){
+			rc = service_at_Test(SERVICE_AT_UART_INST0);
+			if(rc)break;
+			osDelay(1000);
+		}
 
 		//Initialize the state machine
 		gAppStateInstance.activeState = AppStatePreOp;

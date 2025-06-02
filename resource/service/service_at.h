@@ -53,7 +53,7 @@ typedef enum service_at_tagUnsolResp{
 	AT_UNSOL_RESP_MAX  /**< AT_UNSOL_RESP_MAX */
 }service_at_unsolResp_t;
 
-__WEAK void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len);
+__attribute__((weak)) void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len);
 
 uint8_t service_at_Init(void);
 
