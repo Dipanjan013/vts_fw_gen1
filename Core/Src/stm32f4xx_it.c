@@ -61,7 +61,7 @@ extern I2C_HandleTypeDef hi2c2;
 extern SPI_HandleTypeDef hspi1;
 extern UART_HandleTypeDef huart1;
 /* USER CODE BEGIN EV */
-extern UART_HandleTypeDef gsmUartHndl/*huart1*/;
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -248,9 +248,9 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
 
   /* USER CODE END USART1_IRQn 0 */
-//  HAL_UART_IRQHandler(&huart1);
+  HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-  HAL_UART_IRQHandler(&gsmUartHndl);
+
   /* USER CODE END USART1_IRQn 1 */
 }
 

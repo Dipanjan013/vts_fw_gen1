@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "utils.h"
+#include "usart.h"
 
 //Macros
 typedef uint8_t (*CmdHandler_t)(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
@@ -35,7 +36,6 @@ static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_
 static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 //Global Variables
-port_uart_handle_t gsmUartHndl;	//Don't use static as this is used in USART1_IRQHandler
 __attribute__((unused)) port_uart_handle_t gpsUartHndl;
 
 /**
@@ -67,6 +67,9 @@ static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
 		{AT_UNSOL_RESP_CALL, "+RING", NULL},
 		{AT_UNSOL_RESP_GPS, "RMC", UnsolGpsHandler},
 };
+
+//Extern variables
+
 
 /****************************************************************************************************************************************
  *
@@ -207,14 +210,12 @@ static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_
 
 uint8_t service_at_Init(void)
 {
-	intf_at_fnStatus_t ret;
+	intf_at_fnStatus_t ret = INTF_AT_FN_STATUS_FAIL;
 	//Initialize the UART handle for CAVLI C16Qs
-	gsmUartHndl.Instance = USART1;
-	gsmUartHndl.Init.BaudRate = 115200;
-	ret = intf_at_Init(&gsmUartHndl);
-
-//	ret = intf_at_Init(&gpsUartHndl);	//TODO
-
+	huart1.Instance = USART1;
+	huart1.Init.BaudRate = 115200;
+	ret = intf_at_Init(&huart1);
+//	ret = intf_at_Init(&gpsUartHndl);	//not using separate module
 	if(INTF_AT_FN_STATUS_OK != ret){
 		return 0;
 	}else{
@@ -226,7 +227,7 @@ uint8_t service_at_Set(service_at_uartInst_t instance, service_at_cmd_t type, ui
 {
 	port_uart_handle_t *handle = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-			handle = &gsmUartHndl;
+			handle = &huart1;
 	}else{
 			handle = &gpsUartHndl;
 	}
@@ -244,7 +245,7 @@ uint8_t service_at_Read(service_at_uartInst_t instance, service_at_cmd_t type, u
 {
 	port_uart_handle_t *handle = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-			handle = &gsmUartHndl;
+			handle = &huart1;
 	}else{
 			handle = &gpsUartHndl;
 	}
@@ -272,7 +273,7 @@ uint8_t service_at_Execute(service_at_uartInst_t instance, service_at_cmd_t type
 {
 	port_uart_handle_t *handle = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-			handle = &gsmUartHndl;
+			handle = &huart1;
 	}else{
 			handle = &gpsUartHndl;
 	}
@@ -300,7 +301,7 @@ uint8_t service_at_Test(service_at_uartInst_t instance)
 {
 	port_uart_handle_t *handle = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-		handle = &gsmUartHndl;
+		handle = &huart1;
 	}else{
 		handle = &gpsUartHndl;
 	}
@@ -323,7 +324,7 @@ void service_at_UnsolRespCheckerTask(service_at_uartInst_t instance)
 	static port_uart_handle_t *handle = NULL;
 	static uint8_t *ptr = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-			handle = &gsmUartHndl;
+			handle = &huart1;
 	}else{
 			handle = &gpsUartHndl;
 	}
