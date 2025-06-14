@@ -7,3 +7,4 @@
 ../resource/port/port_timer.c:62:23:port_timer_DeInit	2
 ../resource/port/port_timer.c:72:6:port_timer_Delay	2
 ../resource/port/port_timer.c:80:10:port_timer_GetMillis	1
+../resource/port/port_timer.c:85:10:port_timer_GetElapsedTimeMs	1

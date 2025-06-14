@@ -34,6 +34,9 @@ port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t *pPort, port_gpio_pin_e pin
 			break;
 		case PORT_GPIO_MODE_INPUT:
 		case PORT_GPIO_MODE_ANALOG:
+		case PORT_GPIO_MODE_INPUT_IRQ_RISE:
+		case PORT_GPIO_MODE_INPUT_IRQ_FALL:
+		case PORT_GPIO_MODE_INPUT_IRQ_BOTH:
 			config.Pin = pin;
 			config.Mode = mode;
 			config.Pull = type;
@@ -43,6 +46,23 @@ port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t *pPort, port_gpio_pin_e pin
 	}
 	HAL_GPIO_Init(pPort, &config);
 	return PORT_GPIO_FN_STATUS_OK;
+}
+
+port_gpio_fnStatus_e port_gpio_DeInit(port_gpio_port_t *pPort, port_gpio_pin_e pin)
+{
+	HAL_GPIO_DeInit(pPort, pin);
+	return PORT_GPIO_FN_STATUS_OK;
+}
+
+void port_gpio_EnableIrq(port_gpio_interrupt_t type)
+{
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+}
+
+void port_gpio_DisableIrq(port_gpio_port_t port, port_gpio_pin_e pin)
+{
+	HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
 }
 
 void port_gpio_WritePin(port_gpio_port_t *pPort, port_gpio_pin_e pin, port_gpio_state_e state)

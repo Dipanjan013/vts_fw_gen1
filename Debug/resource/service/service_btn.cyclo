@@ -1,0 +1,7 @@
+../resource/service/service_btn.c:34:28:service_btn_EventCb	1
+../resource/service/service_btn.c:40:6:port_gpio_Callback	3
+../resource/service/service_btn.c:53:23:PressIdentifier	5
+../resource/service/service_btn.c:65:30:PatternValidator	6
+../resource/service/service_btn.c:86:13:BtnTmrCb	10
+../resource/service/service_btn.c:127:6:service_btn_Init	3
+../resource/service/service_btn.c:167:6:service_btn_Deinit	1

@@ -1,18 +1,18 @@
 #include "port_timer.h"
 
-port_timer_fnStatus_t port_timer_InitOneShot(port_timer_hndle_t handle, port_timer_Callback_t fn)
+port_timer_fnStatus_t port_timer_InitOneShot(port_timer_hndle_t *phandle, port_timer_Callback_t fn)
 {
-	handle = osTimerNew(fn, osTimerOnce, NULL, NULL);
-	if(!handle){
+	*phandle = osTimerNew(fn, osTimerOnce, NULL, NULL);
+	if(*phandle == NULL){
 		return PORT_TIMER_FN_STATUS_FAIL;
 	}
 	return PORT_TIMER_FN_STATUS_OK;
 }
 
-port_timer_fnStatus_t port_timer_InitPeriodic(port_timer_hndle_t handle, port_timer_Callback_t fn)
+port_timer_fnStatus_t port_timer_InitPeriodic(port_timer_hndle_t *phandle, port_timer_Callback_t fn)
 {
-	handle = osTimerNew(fn, osTimerPeriodic, NULL, NULL);
-	if(!handle){
+	*phandle = osTimerNew(fn, osTimerPeriodic, NULL, NULL);
+	if(*phandle == NULL){
 		return PORT_TIMER_FN_STATUS_FAIL;
 	}
 	return PORT_TIMER_FN_STATUS_OK;
@@ -80,4 +80,9 @@ void port_timer_Delay(uint32_t ms)
 uint32_t port_timer_GetMillis(void)
 {
 	return osKernelGetTickCount();
+}
+
+uint32_t port_timer_GetElapsedTimeMs(uint32_t startTimeMs)
+{
+	return (osKernelGetTickCount() - startTimeMs);
 }

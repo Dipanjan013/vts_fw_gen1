@@ -5,7 +5,9 @@
 #include "cmsis_os2.h"
 
 #include "app.h"
+#include "port_timer.h"
 #include "service_at.h"
+#include "service_btn.h"
 
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
@@ -23,6 +25,7 @@ typedef enum{
 	APP_EVENT_FETCH_GPS,
 	APP_EVENT_CONNECT_CELLULAR,
 	APP_EVENT_CONNECT_MQTT,
+	APP_EVENT_PUB_DATA,
 	APP_EVENT_SLEEP,
 	APP_EVENT_MAX
 }app_event_e;
@@ -50,10 +53,11 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
  */
 static void AppDisPatcher(void);
 
-//Private Variables
+//Global Variables
 static app_stateInst_s gAppStateInstance;
 static osMessageQueueId_t gQueueHndl;
-
+static port_timer_hndle_t tmrHndle;
+static service_btn_pattern_t gTempPattern = SERVICE_BTN_PATTERN_MAX;
 /*!**************************************************************************************************************************
  *
  ***************************************************************************************************************************/
@@ -83,9 +87,17 @@ void AppPostEventFromIsr(app_eventParam_s *pParam)
 	}
 }
 
+void service_btn_EventCb(service_btn_pattern_t pattern)
+{
+	gTempPattern = pattern;
+	app_eventParam_s eventParam = {.event = APP_EVENT_PUB_DATA};	//for testing
+	AppPostEventFromIsr(&eventParam);
+}
+
 static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s *pInst)
 {
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
+	app_eventParam_s eventParam = {0};
 	uint8_t readData[512];
 	int rc = 0;
 	switch(pParam->event){
@@ -106,14 +118,18 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 				}else{
 					printf("MFG Data : %s\r\n", (char*)readData);
 				}
+				service_btn_Init();
 			}while(0);
 			if(rc == 1){
 				printf("Pre-operating state successful. Switching to ---> Normal mode\r\n");
+				eventParam.event = APP_EVENT_PUB_DATA;
 				pInst->nextState = AppStatePublish;
 			}else{
 				printf("Error : Pre-operating state failed\r\n");
+				eventParam.event = APP_EVENT_SLEEP;
 				pInst->nextState = AppStateIdle;
 			}
+			AppPostEvent(&eventParam);
 			stateStatus = APP_STATE_STATUS_TRANS;
 		}break;
 		case APP_RESERVED_EVENT_EXIT:
@@ -129,6 +145,9 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
+			break;
+		case APP_EVENT_PUB_DATA:
+			printf("BUTTON PATTERN : %d\r\n", gTempPattern);
 			break;
 		case APP_RESERVED_EVENT_EXIT:
 			break;
@@ -183,7 +202,6 @@ void app_main(void)
 {
 	printf("\r\n>>BOOT UP\r\n");
 	printf("%s\r\nFW Ver : %s\r\nHW Ver : %s\r\n", CONFIG_FW_NAME, CONFIG_FW_VER, CONFIG_HW_VER);
-	int rc = 0;
 	do{
 		gQueueHndl = osMessageQueueNew(5, sizeof(app_eventParam_s), NULL);
 		if(!gQueueHndl){
@@ -195,11 +213,6 @@ void app_main(void)
 			break;
 		}
 		printf("AT Initialized successfully\r\n");
-		while(1){
-			rc = service_at_Test(SERVICE_AT_UART_INST0);
-			if(rc)break;
-			osDelay(1000);
-		}
 
 		//Initialize the state machine
 		gAppStateInstance.activeState = AppStatePreOp;

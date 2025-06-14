@@ -39,6 +39,9 @@ typedef enum{
 
 typedef enum{
 	PORT_GPIO_MODE_INPUT = GPIO_MODE_INPUT,
+	PORT_GPIO_MODE_INPUT_IRQ_RISE = GPIO_MODE_IT_RISING,
+	PORT_GPIO_MODE_INPUT_IRQ_FALL = GPIO_MODE_IT_FALLING,
+	PORT_GPIO_MODE_INPUT_IRQ_BOTH = GPIO_MODE_IT_RISING_FALLING,
 	PORT_GPIO_MODE_OUTPUT = GPIO_MODE_OUTPUT_PP,
 	PORT_GPIO_MODE_ANALOG = GPIO_MODE_ANALOG
 }port_gpio_mode_e;
@@ -61,8 +64,9 @@ typedef enum{
 }port_gpio_state_e;
 
 port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t *pPort, port_gpio_pin_e pin, port_gpio_mode_e mode, port_gpio_pull_t type);
-port_gpio_fnStatus_e port_gpio_EnableIrq(port_gpio_interrupt_t type);
-port_gpio_fnStatus_e port_gpio_DisableIrq(port_gpio_port_t port, port_gpio_pin_e pin);
+port_gpio_fnStatus_e port_gpio_DeInit(port_gpio_port_t *pPort, port_gpio_pin_e pin);
+void port_gpio_EnableIrq(port_gpio_interrupt_t type);
+void port_gpio_DisableIrq(port_gpio_port_t port, port_gpio_pin_e pin);
 
 /*!
  * @fn port_gpio_WritePin(port_gpio_port_t port, port_gpio_pin_e pin, port_gpio_state_e state);

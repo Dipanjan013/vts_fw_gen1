@@ -1,8 +1,9 @@
-../resource/app/app.c:61:6:service_at_UnsolRespCallback	16	static
-../resource/app/app.c:68:6:AppPostEvent	24	static
-../resource/app/app.c:77:6:AppPostEventFromIsr	24	static
-../resource/app/app.c:86:26:AppStatePreOp	544	static
-../resource/app/app.c:127:26:AppStatePublish	24	static
-../resource/app/app.c:141:26:AppStateIdle	24	static
-../resource/app/app.c:155:13:AppDisPatcher	16	static
-../resource/app/app.c:182:6:app_main	16	static
+../resource/app/app.c:65:6:service_at_UnsolRespCallback	16	static
+../resource/app/app.c:72:6:AppPostEvent	24	static
+../resource/app/app.c:81:6:AppPostEventFromIsr	24	static
+../resource/app/app.c:90:6:service_btn_EventCb	24	static
+../resource/app/app.c:97:26:AppStatePreOp	552	static
+../resource/app/app.c:143:26:AppStatePublish	24	static
+../resource/app/app.c:160:26:AppStateIdle	24	static
+../resource/app/app.c:174:13:AppDisPatcher	16	static
+../resource/app/app.c:201:6:app_main	16	static

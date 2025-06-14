@@ -44,6 +44,7 @@
 "./resource/port/port_timer.o"
 "./resource/port/port_uart.o"
 "./resource/service/service_at.o"
+"./resource/service/service_btn.o"
 "./resource/service/service_queue.o"
 "./resource/utils/utils.o"
 "./resource/utils/utils_gps.o"

@@ -19,8 +19,8 @@ typedef enum{
 typedef osTimerId_t port_timer_hndle_t;
 typedef osTimerFunc_t port_timer_Callback_t;
 
-port_timer_fnStatus_t port_timer_InitOneShot(port_timer_hndle_t handle, port_timer_Callback_t fn);
-port_timer_fnStatus_t port_timer_InitPeriodic(port_timer_hndle_t handle, port_timer_Callback_t fn);
+port_timer_fnStatus_t port_timer_InitOneShot(port_timer_hndle_t *phandle, port_timer_Callback_t fn);
+port_timer_fnStatus_t port_timer_InitPeriodic(port_timer_hndle_t *phandle, port_timer_Callback_t fn);
 port_timer_fnStatus_t port_timer_StartOneShot(port_timer_hndle_t handle, uint32_t ms);
 port_timer_fnStatus_t port_timer_StartPeriodic(port_timer_hndle_t handle, uint32_t ms);
 port_timer_fnStatus_t port_timer_Stop(port_timer_hndle_t handle);
@@ -28,5 +28,8 @@ uint8_t port_timer_IsRunning(port_timer_hndle_t handle);
 port_timer_fnStatus_t port_timer_DeInit(port_timer_hndle_t handle);
 void port_timer_Delay(uint32_t ms);
 uint32_t port_timer_GetMillis(void);
+uint32_t port_timer_GetElapsedTimeMs(uint32_t startTimeMs);
+
+
 
 #endif /* PORT_PORT_TIMER_H_ */

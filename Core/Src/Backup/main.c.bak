@@ -110,7 +110,13 @@ int main(void)
   MX_I2C2_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-//  HAL_UART_MspDeInit(&huart1);		//regenarating ioc files again inits USART which is not req for UART1 as we are calling it from intf_at layer
+
+  /*!
+   * @note :
+   * 1. Do not call MX_USART1_UART_Init(); regenarating ioc files again inits USART which is not req for UART1 as we are calling it from intf_at layer
+   * 2. Change task size use APP_TASK_SIZE
+   *
+   */
   /* USER CODE END 2 */
 
   /* Init scheduler */
