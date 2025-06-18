@@ -1,3 +1,13 @@
+/*
+ * port_gpio.h
+ *
+ *  Created on: June 18, 2025
+ *  Author: Dipanjan
+ */
+
+#ifndef PORT_GPIO_H_
+#define PORT_GPIO_H_
+
 #include <stdint.h>
 #include "gpio.h"
 #include "stm32f4xx_hal.h"
@@ -97,3 +107,5 @@ void port_gpio_TogglePin(port_gpio_port_t *pPort, port_gpio_pin_e pin);
  * @param pin GPIO pin
  */
 void port_gpio_Callback(port_gpio_pin_e pin);
+
+#endif /* PORT_GPIO_H_ */

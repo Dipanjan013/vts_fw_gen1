@@ -21,6 +21,7 @@
 #include "cmsis_os.h"
 #include "i2c.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -74,72 +75,49 @@ PUTCHAR_PROTOTYPE
 	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
   return ch;
 }
+
+/*!
+   * @note :
+   *
+   * 2. Change task size use APP_TASK_SIZE
+   */
+
+/*!
+ * @note
+ * 1. Do not call MX_USART1_UART_Init(); which is not required for UART1 as we are calling it from intf_at layer
+ * 2. Change task size. Use APP_TASK_SIZE
+ * 3. Don't call MX_TIM3_Init. We use it from service button layer
+ */
+int main(void)
+{
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
+	/* Configure the system clock */
+	SystemClock_Config();
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+//  MX_USART1_UART_Init();
+	MX_USART2_UART_Init();
+	MX_I2C2_Init();
+	MX_SPI1_Init();
+//  MX_TIM3_Init();
+	/* Init scheduler */
+	osKernelInitialize();
+	/* Call init function for freertos objects (in cmsis_os2.c) */
+	MX_FREERTOS_Init();
+	/* Start scheduler */
+	osKernelStart();
+	while(1){
+		;
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-//  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_I2C2_Init();
-  MX_SPI1_Init();
-  /* USER CODE BEGIN 2 */
-
-  /*!
-   * @note :
-   * 1. Do not call MX_USART1_UART_Init(); regenarating ioc files again inits USART which is not req for UART1 as we are calling it from intf_at layer
-   * 2. Change task size use APP_TASK_SIZE
-   *
-   */
-  /* USER CODE END 2 */
-
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
-}
 
 /**
   * @brief System Clock Configuration
