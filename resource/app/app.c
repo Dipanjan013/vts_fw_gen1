@@ -5,10 +5,6 @@
 #include "cmsis_os2.h"
 
 #include "app.h"
-#include "port_timer.h"
-#include "port_led.h"
-#include "service_at.h"
-#include "service_btn.h"
 
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
@@ -163,6 +159,9 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 		case APP_RESERVED_EVENT_ENTRY:
 			break;
 		case APP_EVENT_PUB_DATA:
+			printf("[%s] %s\r\n", __func__, "Event Pub data");
+			uint8_t devID = 0;
+			service_adxl_ReadDeviceID(&devID);
 			break;
 		case APP_RESERVED_EVENT_EXIT:
 			break;

@@ -1,0 +1,7 @@
+../resource/port/port_spi.c:4:21:port_spi_Init	4
+../resource/port/port_spi.c:33:21:port_spi_DeInit	3
+../resource/port/port_spi.c:46:21:port_spi_Read	3
+../resource/port/port_spi.c:59:21:port_spi_Write	3
+../resource/port/port_spi.c:72:21:port_spi_Transceive	3
+../resource/port/port_spi.c:85:6:port_spi_SetCSPinLow	1
+../resource/port/port_spi.c:91:6:port_spi_SetCSPinHigh	1

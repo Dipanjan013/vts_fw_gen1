@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 #include "config.h"
+#include "port_timer.h"
+#include "port_led.h"
+#include "service_at.h"
+#include "service_btn.h"
+#include "service_adxl.h"
 
 typedef struct{
 

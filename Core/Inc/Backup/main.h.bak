@@ -61,8 +61,8 @@ void Error_Handler(void);
 #define LOG_TX_GPIO_Port GPIOA
 #define LOG_RX_Pin GPIO_PIN_3
 #define LOG_RX_GPIO_Port GPIOA
-#define LED_Pin GPIO_PIN_5
-#define LED_GPIO_Port GPIOA
+#define LED_BLUE_Pin GPIO_PIN_5
+#define LED_BLUE_GPIO_Port GPIOA
 #define BUTTON_Pin GPIO_PIN_6
 #define BUTTON_GPIO_Port GPIOA
 #define BUTTON_EXTI_IRQn EXTI9_5_IRQn
