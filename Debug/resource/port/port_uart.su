@@ -1,0 +1,10 @@
+../resource/port/port_uart.c:13:13:port_uart_Callback	16	static
+../resource/port/port_uart.c:19:6:HAL_UART_TxCpltCallback	16	static
+../resource/port/port_uart.c:24:6:HAL_UART_RxCpltCallback	16	static
+../resource/port/port_uart.c:34:6:HAL_UART_ErrorCallback	16	static
+../resource/port/port_uart.c:39:22:port_uart_Init	24	static
+../resource/port/port_uart.c:63:22:port_uart_Transmit	32	static
+../resource/port/port_uart.c:81:22:port_uart_Receive	32	static
+../resource/port/port_uart.c:98:22:port_uart_DeInit	24	static
+../resource/port/port_uart.c:115:6:port_uart_AbortXfer	16	static
+../resource/port/port_uart.c:120:9:port_uart_IsRxDataPending	16	static
