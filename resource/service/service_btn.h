@@ -38,6 +38,7 @@ typedef enum{
  * @param pattern - button pattern
  */
 void service_btn_EventCb(service_btn_pattern_t pattern);
+void service_btn_IrqCb(void);
 void service_btn_Init(void);
 void service_btn_Deinit(void);
 

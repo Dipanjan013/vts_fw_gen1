@@ -41,17 +41,13 @@ __attribute__((weak)) void service_btn_EventCb(service_btn_pattern_t pattern)
 	(void)(pattern);
 }
 
-static volatile uint8_t tempFlag = 0;
-void port_gpio_Callback(port_gpio_pin_e pin)
+void service_btn_IrqCb(void)
 {
-	if(pin == SERVICE_BTN_PIN){
-		tempFlag = 1;
-		if(!port_timer_HwTimIsRunning(&htim3)){
-			memset(&gCurrentPattern, 0, sizeof(patternTable_s));
-			gBtnState = BTN_WAIT_FOR_PRESS;
-			printf("Start timer\r\n");
-			port_timer_HwTimStartIT(&htim3);
-		}
+	if(!port_timer_HwTimIsRunning(&htim3)){
+		memset(&gCurrentPattern, 0, sizeof(patternTable_s));
+		gBtnState = BTN_WAIT_FOR_PRESS;
+		printf("Start timer\r\n");
+		port_timer_HwTimStartIT(&htim3);
 	}
 }
 

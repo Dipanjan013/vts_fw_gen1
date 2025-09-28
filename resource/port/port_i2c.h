@@ -38,6 +38,8 @@ typedef enum{
  */
 port_i2c_fnStatus_e port_i2c_Init(port_i2c_handle_t *pHndl, port_i2c_instance_e instance);
 
+void port_i2c_Scan(port_i2c_handle_t *pHndl);
+
 /**
  * @brief Deinitializes the I2C handle and underlying hardware resources.
  *

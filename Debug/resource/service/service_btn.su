@@ -1,7 +1,7 @@
 ../resource/service/service_btn.c:39:28:service_btn_EventCb	16	static
-../resource/service/service_btn.c:45:6:port_gpio_Callback	16	static
-../resource/service/service_btn.c:58:23:PressIdentifier	24	static
-../resource/service/service_btn.c:75:30:PatternValidator	24	static
-../resource/service/service_btn.c:95:6:port_timer_HwCallback	32	static
-../resource/service/service_btn.c:147:6:service_btn_Init	24	static
-../resource/service/service_btn.c:171:6:service_btn_Deinit	8	static
+../resource/service/service_btn.c:44:6:service_btn_IrqCb	8	static
+../resource/service/service_btn.c:54:23:PressIdentifier	24	static
+../resource/service/service_btn.c:71:30:PatternValidator	24	static
+../resource/service/service_btn.c:91:6:port_timer_HwCallback	32	static
+../resource/service/service_btn.c:143:6:service_btn_Init	24	static
+../resource/service/service_btn.c:167:6:service_btn_Deinit	8	static

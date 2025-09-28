@@ -1,6 +1,7 @@
 #include "port_spi.h"
 #include <stdio.h>
 
+#if(PORT_SPI_ENABLE)
 port_spi_fnStatus_e port_spi_Init(port_spi_hndl_t *pHndl, port_spi_instance_e instance)
 {
 	switch(instance){
@@ -93,3 +94,4 @@ void port_spi_SetCSPinHigh(port_spi_hndl_t *pHndl)
 	(void)(pHndl);
 	HAL_GPIO_WritePin(PORT_SPI_CS_PORT, PORT_SPI_CS_PIN, GPIO_PIN_SET);
 }
+#endif

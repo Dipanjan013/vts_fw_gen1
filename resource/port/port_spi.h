@@ -12,6 +12,9 @@
 #include "port_gpio.h"
 #include "stm32f4xx_hal.h"
 
+#define PORT_SPI_ENABLE 0
+
+#if(PORT_SPI_ENABLE)
 typedef SPI_HandleTypeDef port_spi_hndl_t;
 
 #define PORT_SPI_CS_PORT PORT_GPIO_PORT_A
@@ -35,5 +38,5 @@ port_spi_fnStatus_e port_spi_Write(port_spi_hndl_t *pHndl, uint8_t *buff, uint16
 port_spi_fnStatus_e port_spi_Transceive(port_spi_hndl_t *pHndl, uint8_t *txBuff, uint8_t *rxBuff, uint16_t rxLen, uint32_t timeoutMs);
 void port_spi_SetCSPinLow(port_spi_hndl_t *pHndl);
 void port_spi_SetCSPinHigh(port_spi_hndl_t *pHndl);
-
+#endif
 #endif /* INTF_SPI_H_ */

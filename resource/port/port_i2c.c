@@ -94,6 +94,21 @@ port_i2c_fnStatus_e port_i2c_DeInit(port_i2c_handle_t *pHndl)
 	return PORT_I2C_FN_STATUS_OK;
 }
 
+void port_i2c_Scan(port_i2c_handle_t *pHndl)
+{
+    HAL_StatusTypeDef ret;
+    uint8_t i;
+    printf("Scanning I2C bus...\r\n");
+    for (i = 1; i < 128; i++){ // valid 7-bit addresses: 0x01..0x7F
+			ret = HAL_I2C_IsDeviceReady(pHndl, (uint16_t)(i << 1), 1, 10);
+			if (ret == HAL_OK) {
+				printf("Found device at 0x%02X\r\n", i);
+			}
+    }
+    printf("Scan complete.\r\n");
+}
+
+
 port_i2c_fnStatus_e port_i2c_Write(port_i2c_handle_t *pHndl, uint16_t address, uint8_t *pdata, uint16_t len, uint32_t timeoutMs)
 {
 	HAL_StatusTypeDef ret;

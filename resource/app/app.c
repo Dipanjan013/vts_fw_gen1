@@ -5,7 +5,7 @@
 #include "cmsis_os2.h"
 
 #include "app.h"
-
+#include "port_i2c.h"
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
 
@@ -53,9 +53,38 @@ static void AppDisPatcher(void);
 //Global Variables
 static app_stateInst_s gAppStateInstance;
 static osMessageQueueId_t gQueueHndl;
+
+static volatile uint32_t gAppFlags = 0;
 /*!**************************************************************************************************************************
  *
  ***************************************************************************************************************************/
+
+static inline void AppSetFlag(appFlagBits_e bit)
+{
+	gAppFlags |= bit;
+}
+
+static inline void AppClearFlag(appFlagBits_e bit)
+{
+	if(gAppFlags & bit){
+		gAppFlags = ~bit;
+	}
+}
+
+uint8_t app_flagGet(appFlagBits_e bit)
+{
+	return (gAppFlags & bit);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == ADXL_INT1_Pin){
+		AppSetFlag(APP_FLAG_BIT_ADXL_TAP);
+	}
+  if(GPIO_Pin == BUTTON_Pin){
+		service_btn_IrqCb();
+  }
+}
 
 void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len)
 {
@@ -160,8 +189,26 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 			break;
 		case APP_EVENT_PUB_DATA:
 			printf("[%s] %s\r\n", __func__, "Event Pub data");
+			port_i2c_Scan(ADXL_I2C_HNDL);
 			uint8_t devID = 0;
-			service_adxl_ReadDeviceID(&devID);
+			devID = drv_adxl_GetDevId();
+			printf("ADXL DEVICE ID : 0x%2X\r\n", devID);
+			drv_adxl_Init(DRV_ADXL_MODE_STREAM);
+			float x = 0, y = 0, z = 0;
+			for(uint8_t i = 0; i < 3; i++){
+				drv_adxl_ReadAxesXYZ(&x, &y, &z);
+				printf("x = %.2f, y = %.2f, z = %.2f\r\n", x,y,z);
+				osDelay(100);
+			}
+			drv_adxl_Init(DRV_ADXL_MODE_TAP_DETECT_SINGLE);
+			uint8_t source = 0;
+			while(1){
+				if(app_flagGet(APP_FLAG_BIT_ADXL_TAP)){
+					printf("ADXL IRQ recvd\r\n");
+					AppClearFlag(APP_FLAG_BIT_ADXL_TAP);
+				}
+				osDelay(500);
+			}
 			break;
 		case APP_RESERVED_EVENT_EXIT:
 			break;

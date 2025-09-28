@@ -190,10 +190,10 @@ uint8_t port_timer_HwTimIsRunning(port_timer_hwTimHndl *pHndl)
 
 void port_timer_Delay(uint32_t ms)
 {
-	while(ms--){
-		osDelay(1);
-	}
-//	osDelay(ms);
+//	while(ms--){
+//		osDelay(1);
+//	}
+	osDelay(ms);
 }
 
 uint32_t port_timer_GetMillis(void)

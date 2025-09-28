@@ -5,11 +5,6 @@ __attribute__((weak)) void port_gpio_Callback(port_gpio_pin_e pin)
 
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	port_gpio_Callback(GPIO_Pin);
-}
-
 port_gpio_fnStatus_e port_gpio_Init(port_gpio_port_t *pPort, port_gpio_pin_e pin, port_gpio_mode_e mode, port_gpio_pull_t type)
 {
 	GPIO_InitTypeDef config = {0};

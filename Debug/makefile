@@ -13,6 +13,7 @@ RM := rm -rf
 -include resource/service/subdir.mk
 -include resource/port/subdir.mk
 -include resource/intf/subdir.mk
+-include resource/driver/subdir.mk
 -include resource/app/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
@@ -76,7 +77,7 @@ main-build: vts_fw_gen1.elf secondary-outputs
 
 # Tool invocations
 vts_fw_gen1.elf vts_fw_gen1.map: $(OBJS) $(USER_OBJS) E:\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "vts_fw_gen1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="vts_fw_gen1.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "vts_fw_gen1.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"E:\st_workspace\vts_fw_gen1\STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="vts_fw_gen1.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

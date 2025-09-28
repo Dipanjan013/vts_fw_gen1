@@ -61,13 +61,14 @@ void Error_Handler(void);
 #define LOG_TX_GPIO_Port GPIOA
 #define LOG_RX_Pin GPIO_PIN_3
 #define LOG_RX_GPIO_Port GPIOA
-#define SPI1_CS_Pin GPIO_PIN_4
-#define SPI1_CS_GPIO_Port GPIOA
 #define LED_BLUE_Pin GPIO_PIN_5
 #define LED_BLUE_GPIO_Port GPIOA
 #define BUTTON_Pin GPIO_PIN_6
 #define BUTTON_GPIO_Port GPIOA
 #define BUTTON_EXTI_IRQn EXTI9_5_IRQn
+#define ADXL_INT1_Pin GPIO_PIN_8
+#define ADXL_INT1_GPIO_Port GPIOA
+#define ADXL_INT1_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 

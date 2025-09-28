@@ -1,0 +1,6 @@
+../resource/driver/drv_adxl.c:12:9:drv_adxl_Init	32	static
+../resource/driver/drv_adxl.c:95:9:drv_adxl_DeInit	4	static
+../resource/driver/drv_adxl.c:100:9:drv_adxl_GetDevId	24	static
+../resource/driver/drv_adxl.c:113:6:drv_adxl_Sleep	4	static
+../resource/driver/drv_adxl.c:118:9:drv_adxl_ReadAxesXYZ	48	static
+../resource/driver/drv_adxl.c:146:9:drv_adxl_ReadInterruptSrc	32	static

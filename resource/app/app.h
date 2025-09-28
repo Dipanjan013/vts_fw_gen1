@@ -14,7 +14,11 @@
 #include "port_led.h"
 #include "service_at.h"
 #include "service_btn.h"
-#include "service_adxl.h"
+#include "drv_adxl.h"
+
+typedef enum{
+	APP_FLAG_BIT_ADXL_TAP = (1 << 0),
+}appFlagBits_e;
 
 typedef struct{
 
@@ -50,5 +54,7 @@ void AppPostEvent(app_eventParam_s *pParam);
  * @param pParam app_eventParam_s
  */
 void AppPostEventFromIsr(app_eventParam_s *pParam);
+
+uint8_t app_flagGet(appFlagBits_e bit);
 
 #endif /* APP_APP_H_ */

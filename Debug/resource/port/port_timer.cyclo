@@ -13,6 +13,6 @@
 ../resource/port/port_timer.c:161:23:port_timer_HwTimStartIT	2
 ../resource/port/port_timer.c:171:23:port_timer_HwTimStopIT	2
 ../resource/port/port_timer.c:181:9:port_timer_HwTimIsRunning	2
-../resource/port/port_timer.c:191:6:port_timer_Delay	2
+../resource/port/port_timer.c:191:6:port_timer_Delay	1
 ../resource/port/port_timer.c:199:10:port_timer_GetMillis	1
 ../resource/port/port_timer.c:204:10:port_timer_GetElapsedTimeMs	1
