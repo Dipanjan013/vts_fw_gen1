@@ -1,4 +1,5 @@
 #include "port_i2c.h"
+#include <stdio.h>
 
 static volatile uint8_t gFlagXferCmplt = 0;
 static volatile uint8_t gFlagXferErr = 0;

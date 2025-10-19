@@ -36,5 +36,6 @@ resource/driver \
 resource/intf \
 resource/port \
 resource/service \
+resource/system \
 resource/utils \
 

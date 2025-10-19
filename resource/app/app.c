@@ -6,6 +6,8 @@
 
 #include "app.h"
 #include "port_i2c.h"
+#include "service_log.h"
+
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
 
@@ -90,7 +92,7 @@ void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, ui
 {
 	(void)(buff);
 	(void)(len);
-	printf("[%s] Type : %d\r\n", __func__, type);
+	LOG_I("[%s] Type : %d\r\n", __func__, type);
 }
 
 void AppPostEvent(app_eventParam_s *pParam)
@@ -98,7 +100,7 @@ void AppPostEvent(app_eventParam_s *pParam)
 	osStatus_t osStatus = osError;
 	osStatus = osMessageQueuePut(gQueueHndl, pParam, 0, MSG_POST_TIMEOUT_MS);
 	if(osOK != osStatus){
-		printf("[%s] Failed (%d)\r\n", __func__, osStatus);
+		LOG_E("[%s] Failed (%d)\r\n", __func__, osStatus);
 	}
 }
 
@@ -115,20 +117,20 @@ void service_btn_EventCb(service_btn_pattern_t pattern)
 {
 	switch (pattern) {
 		case SERVICE_BTN_PATTERN_ONBOARDING:
-			printf("SERVICE_BTN_PATTERN_ONBOARDING\r\n");
+			LOG_I("SERVICE_BTN_PATTERN_ONBOARDING\r\n");
 			break;
 		case SERVICE_BTN_PATTERN_REBOOT:
-			printf("SERVICE_BTN_PATTERN_REBOOT\r\n");
+			LOG_I("SERVICE_BTN_PATTERN_REBOOT\r\n");
 			HAL_NVIC_SystemReset();
 			break;
 		case SERVICE_BTN_PATTERN_CLEARALL:
-			printf("SERVICE_BTN_PATTERN_CLEARALL\r\n");
+			LOG_I("SERVICE_BTN_PATTERN_CLEARALL\r\n");
 			break;
 		case SERVICE_BTN_PATTERN_TESTMODE:
-			printf("SERVICE_BTN_PATTERN_TESTMODE\r\n");
+			LOG_I("SERVICE_BTN_PATTERN_TESTMODE\r\n");
 			break;
 		case SERVICE_BTN_PATTERN_MAX:
-			printf("UNDEFINED BUTTON\r\n");
+			LOG_W("UNDEFINED BUTTON\r\n");
 		default:
 			break;
 	}
@@ -145,28 +147,50 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 		case APP_RESERVED_EVENT_ENTRY:
 			break;
 		case APP_EVENT_INIT:{
-			printf("[%s] Init\r\n", __func__);
-			do{
+			LOG_I("[%s] Init\r\n", __func__);
+
+			//Check cellular communication
+			LOG_I("Checking Cellular communication\r\n");
+			for(uint8_t i = 0; i < 3; i++){
 				rc = service_at_Test(SERVICE_AT_UART_INST0);
 				if(!rc){
-					printf("Communication failed with Cellular\r\n");
-					break;
-				}
-				memset(readData, 0, sizeof(readData));
-				rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_MFG_INFO, readData, sizeof(readData)-1, 1000);
-				if(!rc){
-					printf("Failed to read MFG data\r\n");
+					LOG_E("Communication failed with Cellular\r\n");
 				}else{
-					printf("MFG Data : %s\r\n", (char*)readData);
+					memset(readData, 0, sizeof(readData));
+					rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_MFG_INFO, readData, sizeof(readData)-1, 1000);
+					if(!rc){
+						printf("Failed to read MFG data\r\n");
+					}else{
+						printf("MFG Data : %s\r\n", (char*)readData);
+					}
 				}
-				service_btn_Init();
-			}while(0);
+			}
+
+			//Initialize the button service
+			service_btn_Init();
+
+			//Initialize the accelerometer
+			LOG_I("Initializing the Accelerometer\r\n");
+			port_i2c_Scan(ADXL_I2C_HNDL);
+			uint8_t devID = 0;
+			devID = drv_adxl_GetDevId();
+			LOG_I("ADXL DEVICE ID : 0x%2X\r\n", devID);
+			drv_adxl_Init(DRV_ADXL_MODE_STREAM);
+			float x = 0, y = 0, z = 0;
+			for(uint8_t i = 0; i < 3; i++){
+				drv_adxl_ReadAxesXYZ(&x, &y, &z);
+				LOG_I("x = %.2f, y = %.2f, z = %.2f\r\n", x,y,z);
+				osDelay(100);
+			}
+			LOG_I("Enabling crash detection\r\n");
+			drv_adxl_Init(DRV_ADXL_MODE_TAP_DETECT_SINGLE);
+
 			if(rc == 1){
-				printf("Pre-operating state successful. Switching to ---> Normal mode\r\n");
+				LOG_I("System initialization successful. Switching to ---> Normal mode\r\n");
 				eventParam.event = APP_EVENT_PUB_DATA;
 				pInst->nextState = AppStatePublish;
 			}else{
-				printf("Error : Pre-operating state failed\r\n");
+				LOG_E("Error : Pre-operating state failed\r\n");
 				eventParam.event = APP_EVENT_SLEEP;
 				pInst->nextState = AppStateIdle;
 			}
@@ -176,7 +200,7 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 		case APP_RESERVED_EVENT_EXIT:
 			break;
 		default:
-			printf("[%s] Unknown event %d\r\n", __func__, pParam->event);
+			LOG_W("[%s] Unknown event %d\r\n", __func__, pParam->event);
 	}
 	return stateStatus;
 }
@@ -188,23 +212,14 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 		case APP_RESERVED_EVENT_ENTRY:
 			break;
 		case APP_EVENT_PUB_DATA:
-			printf("[%s] %s\r\n", __func__, "Event Pub data");
-			port_i2c_Scan(ADXL_I2C_HNDL);
-			uint8_t devID = 0;
-			devID = drv_adxl_GetDevId();
-			printf("ADXL DEVICE ID : 0x%2X\r\n", devID);
-			drv_adxl_Init(DRV_ADXL_MODE_STREAM);
-			float x = 0, y = 0, z = 0;
-			for(uint8_t i = 0; i < 3; i++){
-				drv_adxl_ReadAxesXYZ(&x, &y, &z);
-				printf("x = %.2f, y = %.2f, z = %.2f\r\n", x,y,z);
-				osDelay(100);
-			}
-			drv_adxl_Init(DRV_ADXL_MODE_TAP_DETECT_SINGLE);
-			uint8_t source = 0;
+			LOG_I("[%s] %s\r\n", __func__, "Event Pub data");
+			uint8_t rxBuff[512] = {0};
+			int rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_GPS_STREAM, rxBuff, sizeof(rxBuff)-1, 1000);
+			//separate API to read and parse the GPS data. if successful data, store in a structure - lat, lon, time, etc
+
 			while(1){
 				if(app_flagGet(APP_FLAG_BIT_ADXL_TAP)){
-					printf("ADXL IRQ recvd\r\n");
+					LOG_D("ADXL IRQ recvd\r\n");
 					AppClearFlag(APP_FLAG_BIT_ADXL_TAP);
 				}
 				osDelay(500);
@@ -213,7 +228,7 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 		case APP_RESERVED_EVENT_EXIT:
 			break;
 		default:
-			printf("[%s] Unknown event %d\r\n", __func__, pParam->event);
+			LOG_W("[%s] Unknown event %d\r\n", __func__, pParam->event);
 	}
 	return stateStatus;
 }
@@ -227,7 +242,7 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
 		case APP_RESERVED_EVENT_EXIT:
 			break;
 		default:
-			printf("[%s] Unknown event %d\r\n", __func__, pParam->event);
+			LOG_W("[%s] Unknown event %d\r\n", __func__, pParam->event);
 	}
 	return stateStatus;
 }
@@ -249,11 +264,11 @@ static void AppDisPatcher(void)
 					gAppStateInstance.activeState(&appEvent, &gAppStateInstance);		//clear entry the target state
 					gAppStateInstance.nextState = NULL;
 				}else{
-					printf("[%s] State change requested but next state is empty\r\n", __func__);
+					LOG_W("[%s] State change requested but next state is empty\r\n", __func__);
 				}
 			}
 		}else{
-			printf("[%s]Failed to get new message\r\n", __func__);
+			LOG_E("[%s]Failed to get new message\r\n", __func__);
 		}
 		osDelay(1);
 	}
@@ -261,8 +276,8 @@ static void AppDisPatcher(void)
 
 void app_main(void)
 {
-	printf("\r\n>>BOOT UP\r\n");
-	printf("%s\r\nFW Ver : %s\r\nHW Ver : %s\r\n", CONFIG_FW_NAME, CONFIG_FW_VER, CONFIG_HW_VER);
+	LOG_I("\r\n>>BOOT UP\r\n");
+	LOG_I("%s\r\nFW Ver : %s\r\nHW Ver : %s\r\n", CONFIG_FW_NAME, CONFIG_FW_VER, CONFIG_HW_VER);
 	for(uint8_t i = 0; i < 10; i++){
 		port_led_Toggle(PORT_LED_COLOUR_BLUE);
 		osDelay(100);
@@ -270,14 +285,14 @@ void app_main(void)
 	do{
 		gQueueHndl = osMessageQueueNew(5, sizeof(app_eventParam_s), NULL);
 		if(!gQueueHndl){
-			printf("[%s]Failed to create message queue\r\n", __func__);
+			LOG_E("[%s]Failed to create message queue\r\n", __func__);
 			break;
 		}
 		if(!service_at_Init()){
-			printf("AT Initialization failed\r\n");
+			LOG_E("AT Initialization failed\r\n");
 			break;
 		}
-		printf("AT Initialized successfully\r\n");
+		LOG_I("AT Initialized successfully\r\n");
 
 		//Initialize the state machine
 		gAppStateInstance.activeState = AppStatePreOp;
@@ -293,4 +308,8 @@ void app_main(void)
 	}while(0);
 
 	//Reaching here indicates error at boot-up
+	for(;;){
+		LOG_E("System Initialization failed\r\n");
+		osDelay(10000);
+	}
 }

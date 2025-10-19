@@ -42,7 +42,8 @@ resource/app/app.o: ../resource/app/app.c \
  E:/st_workspace/vts_fw_gen1/resource/service/service_btn.h \
  E:/st_workspace/vts_fw_gen1/resource/port/port_gpio.h \
  E:/st_workspace/vts_fw_gen1/resource/driver/drv_adxl.h ../Core/Inc/i2c.h \
- E:/st_workspace/vts_fw_gen1/resource/port/port_i2c.h
+ E:/st_workspace/vts_fw_gen1/resource/port/port_i2c.h \
+ E:/st_workspace/vts_fw_gen1/resource/service/service_log.h
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 ../resource/app/app.h:
 E:/st_workspace/vts_fw_gen1/resource/config/config.h:
@@ -89,3 +90,4 @@ E:/st_workspace/vts_fw_gen1/resource/port/port_gpio.h:
 E:/st_workspace/vts_fw_gen1/resource/driver/drv_adxl.h:
 ../Core/Inc/i2c.h:
 E:/st_workspace/vts_fw_gen1/resource/port/port_i2c.h:
+E:/st_workspace/vts_fw_gen1/resource/service/service_log.h:

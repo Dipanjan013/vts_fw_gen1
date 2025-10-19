@@ -52,7 +52,7 @@ typedef enum{
 uint8_t drv_adxl_Init(drv_adxl_mode_e mode);
 uint8_t drv_adxl_DeInit();
 uint8_t drv_adxl_GetDevId(void);
-void drv_adxl_Sleep(void);
+uint8_t drv_adxl_Sleep(void);
 uint8_t drv_adxl_ReadAxesXYZ(float *pX, float *pY, float *pZ);
 uint8_t drv_adxl_ReadInterruptSrc(uint8_t *readByte);
 

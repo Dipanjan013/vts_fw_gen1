@@ -113,6 +113,7 @@ uint8_t drv_adxl_GetDevId(void)
 uint8_t drv_adxl_Sleep(void)
 {
 	//Set the power control register
+	port_i2c_fnStatus_e fn = PORT_I2C_FN_STATUS_FAIL;
 	uint8_t writeData = 0x04;
 	fn = port_i2c_RegWrite(ADXL_I2C_HNDL, DRV_ADXL345_ADDR, DRV_ADXL345_PWR_CTL_REG, &writeData, 1, PORT_I2C_DEF_TIMEOUT_MS);
 	if(fn != PORT_I2C_FN_STATUS_OK){
