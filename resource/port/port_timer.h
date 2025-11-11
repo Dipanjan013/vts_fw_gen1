@@ -64,9 +64,11 @@ uint8_t port_timer_CalcPscArr(uint8_t fclk_mhz, uint16_t ms, uint16_t *pPsc, uin
  * @return
  */
 port_timer_fnStatus_t port_timer_HwTimInit(port_timer_hwTimHndl *pHndl, port_timer_hwInstance_e instance, uint16_t ms, uint16_t psc, uint16_t arr);
+port_timer_fnStatus_t port_timer_HwTimDeinit(port_timer_hwTimHndl *pHndl);
 port_timer_fnStatus_t port_timer_HwTimStartIT(port_timer_hwTimHndl *pHndl);
 port_timer_fnStatus_t port_timer_HwTimStopIT(port_timer_hwTimHndl *pHndl);
 uint8_t port_timer_HwTimIsRunning(port_timer_hwTimHndl *pHndl);
 void port_timer_HwCallback(port_timer_hwInstance_e instance);
 
 #endif /* PORT_PORT_TIMER_H_ */
+;

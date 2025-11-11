@@ -49,6 +49,7 @@
 "./resource/port/port_uart.o"
 "./resource/service/service_at.o"
 "./resource/service/service_btn.o"
+"./resource/service/service_led.o"
 "./resource/service/service_queue.o"
 "./resource/system/system_stm32.o"
 "./resource/utils/utils.o"

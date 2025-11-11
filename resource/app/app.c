@@ -7,9 +7,12 @@
 #include "app.h"
 #include "port_i2c.h"
 #include "service_log.h"
+#include "utils_gps.h"
 
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
+#define SEC_TO_MS (1000)
+#define MINS_TO_MS (60 * SEC_TO_MS)
 
 //User-defined data types
 typedef enum{
@@ -43,9 +46,14 @@ struct app_tagStateInstance{
 };
 
 //Function prototypes
+//State Handlers
 static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s *pInst);
+static app_stateStatus_e AppStateSampling(app_eventParam_s *pParam, app_stateInst_s *pInst);
 static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst_s *pInst);
 static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s *pInst);
+
+static void SamplingTmrCb(void *arg);
+static void ReportingTmrCb(void *arg);
 
 /*!
  * @fn App dispatcher task that handle events
@@ -53,8 +61,10 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
 static void AppDisPatcher(void);
 
 //Global Variables
-static app_stateInst_s gAppStateInstance;
-static osMessageQueueId_t gQueueHndl;
+static app_stateInst_s gAppStateInstance = {0};
+static osMessageQueueId_t gQueueHndl = NULL;
+static port_timer_hndle_t gSamplingTmrHnd = NULL;
+static port_timer_hndle_t gReportingTmrHnd = NULL;
 
 static volatile uint32_t gAppFlags = 0;
 /*!**************************************************************************************************************************
@@ -86,6 +96,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   if(GPIO_Pin == BUTTON_Pin){
 		service_btn_IrqCb();
   }
+}
+
+static void SamplingTmrCb(void *arg)
+{
+	(void)(arg);
+}
+
+static void ReportingTmrCb(void *arg)
+{
+	(void)(arg);
 }
 
 void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len)
@@ -148,47 +168,52 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 			break;
 		case APP_EVENT_INIT:{
 			LOG_I("[%s] Init\r\n", __func__);
+			do{
+				//Initialize the button service
+				service_btn_Init();
 
-			//Check cellular communication
-			LOG_I("Checking Cellular communication\r\n");
-			for(uint8_t i = 0; i < 3; i++){
-				rc = service_at_Test(SERVICE_AT_UART_INST0);
-				if(!rc){
+				//Check cellular communication
+				LOG_I("Checking comm.with Cavli\r\n");
+				if(!service_at_Test(SERVICE_AT_UART_INST0)){
 					LOG_E("Communication failed with Cellular\r\n");
-				}else{
-					memset(readData, 0, sizeof(readData));
-					rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_MFG_INFO, readData, sizeof(readData)-1, 1000);
-					if(!rc){
-						printf("Failed to read MFG data\r\n");
-					}else{
-						printf("MFG Data : %s\r\n", (char*)readData);
-					}
+					break;
 				}
-			}
+				//Cellular echo-off
+				service_at_Execute(SERVICE_AT_UART_INST0, AT_EXE_ECHO_OFF, 1000);
+				memset(readData, 0, sizeof(readData));
+				rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_MFG_INFO, readData, sizeof(readData)-1, 1000);
+				if(!rc){
+					printf("Failed to read MFG data\r\n");
+				}else{
+					printf("MFG Data : %s\r\n", (char*)readData);
+				}
 
-			//Initialize the button service
-			service_btn_Init();
+				//Initialize the timers
+				port_timer_InitOneShot(gReportingTmrHnd, ReportingTmrCb);
+				port_timer_InitPeriodic(gSamplingTmrHnd, SamplingTmrCb);
 
-			//Initialize the accelerometer
-			LOG_I("Initializing the Accelerometer\r\n");
-			port_i2c_Scan(ADXL_I2C_HNDL);
-			uint8_t devID = 0;
-			devID = drv_adxl_GetDevId();
-			LOG_I("ADXL DEVICE ID : 0x%2X\r\n", devID);
-			drv_adxl_Init(DRV_ADXL_MODE_STREAM);
-			float x = 0, y = 0, z = 0;
-			for(uint8_t i = 0; i < 3; i++){
-				drv_adxl_ReadAxesXYZ(&x, &y, &z);
-				LOG_I("x = %.2f, y = %.2f, z = %.2f\r\n", x,y,z);
-				osDelay(100);
-			}
-			LOG_I("Enabling crash detection\r\n");
-			drv_adxl_Init(DRV_ADXL_MODE_TAP_DETECT_SINGLE);
+				//Initialize the accelerometer
+				LOG_I("Initializing the Accelerometer\r\n");
+				port_i2c_Scan(ADXL_I2C_HNDL);
+				uint8_t devID = 0;
+				devID = drv_adxl_GetDevId();
+				LOG_I("ADXL DEVICE ID : 0x%2X\r\n", devID);
+				drv_adxl_Init(DRV_ADXL_MODE_STREAM);
+				float x = 0, y = 0, z = 0;
+				for(uint8_t i = 0; i < 3; i++){
+					drv_adxl_ReadAxesXYZ(&x, &y, &z);
+					LOG_I("x = %.2f, y = %.2f, z = %.2f\r\n", x,y,z);
+					osDelay(100);
+				}
+				LOG_I("Enabling crash detection\r\n");
+				drv_adxl_Init(DRV_ADXL_MODE_TAP_DETECT_SINGLE);
+				rc = 1;	//all succeeded
+			}while(0);
 
 			if(rc == 1){
 				LOG_I("System initialization successful. Switching to ---> Normal mode\r\n");
-				eventParam.event = APP_EVENT_PUB_DATA;
-				pInst->nextState = AppStatePublish;
+				eventParam.event = APP_EVENT_FETCH_GPS;
+				pInst->nextState = AppStateSampling;
 			}else{
 				LOG_E("Error : Pre-operating state failed\r\n");
 				eventParam.event = APP_EVENT_SLEEP;
@@ -205,6 +230,47 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 	return stateStatus;
 }
 
+static app_stateStatus_e AppStateSampling(app_eventParam_s *pParam, app_stateInst_s *pInst)
+{
+	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
+	nmea_s nmea = {0};
+	int rc = 0;
+	switch(pParam->event){
+		case APP_RESERVED_EVENT_ENTRY:
+			break;
+		case APP_EVENT_FETCH_GPS:
+			LOG_I("[%s] %s\r\n", __func__, "Event GPS");
+			//Turn on GPS
+			service_at_Execute(SERVICE_AT_UART_INST0, AT_EXE_GPS_ON, 1000);
+			//Start reading GPS data
+			for(uint8_t i = 0; i < 20; i++){
+				rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_GPS_POS, (uint8_t*)&nmea, sizeof(nmea_s), 1000);
+				if(rc){
+					break;
+				}else{
+					osDelay(3000);
+				}
+			}
+			if(rc){
+				utils_gps_PrintNmea(&nmea);
+				eventParam.event = APP_EVENT_PUB_DATA;
+				pInst->nextState = AppStatePublish;
+			}else{
+				LOG_W("GPS loc failed\r\n");
+				eventParam.event = APP_EVENT_PUB_DATA;
+				pInst->nextState = AppStateIdle;
+			}
+			stateStatus = APP_STATE_STATUS_TRANS;
+			AppPostEvent(&eventParam);
+			break;
+		case APP_RESERVED_EVENT_EXIT:
+			break;
+		default:
+			LOG_W("[%s] Unknown event %d\r\n", __func__, pParam->event);
+	}
+	return stateStatus;
+}
+
 static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst_s *pInst)
 {
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
@@ -213,10 +279,6 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 			break;
 		case APP_EVENT_PUB_DATA:
 			LOG_I("[%s] %s\r\n", __func__, "Event Pub data");
-			uint8_t rxBuff[512] = {0};
-			int rc = service_at_Read(SERVICE_AT_UART_INST0, AT_READ_GPS_STREAM, rxBuff, sizeof(rxBuff)-1, 1000);
-			//separate API to read and parse the GPS data. if successful data, store in a structure - lat, lon, time, etc
-
 			while(1){
 				if(app_flagGet(APP_FLAG_BIT_ADXL_TAP)){
 					LOG_D("ADXL IRQ recvd\r\n");
@@ -238,6 +300,9 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
+			break;
+		case APP_EVENT_SLEEP:
+			LOG_I("[%s] %s\r\n", __func__, "Event Sleep");
 			break;
 		case APP_RESERVED_EVENT_EXIT:
 			break;

@@ -24,6 +24,7 @@ typedef enum service_at_tagUartInstance{
  */
 typedef enum service_at_tagcmdType{
 	AT_EXE_TEST,        /**< AT */
+	AT_ECHO_OFF,
 	AT_READ_MFG_INFO,   /**< ATI. Reads IMEI, vendor ID, mfg ID, HW rev, build date, etc */
 	AT_READ_IMSI,       /**< AT_READ_IMSI */
 	AT_READ_ICCID,      /**< AT_READ_ICCID */
@@ -36,8 +37,7 @@ typedef enum service_at_tagcmdType{
 	AT_EXE_ECHO_OFF,    /**< AT_EXE_ECHO_OFF */
 	AT_EXE_GPS_ON,
 	AT_EXE_GPS_OFF,
-	AT_READ_GPS_STREAM,
-	AT_EXE_GPS_STREAM_STOP,
+	AT_READ_GPS_POS,
 	AT_MAX  //end
 }service_at_cmd_t;
 
@@ -49,7 +49,6 @@ typedef enum service_at_tagcmdType{
 typedef enum service_at_tagUnsolResp{
 	AT_UNSOL_RESP_SMS, /**< AT_UNSOL_RESP_SMS */
 	AT_UNSOL_RESP_CALL,/**< AT_UNSOL_RESP_CALL */
-	AT_UNSOL_RESP_GPS,
 	AT_UNSOL_RESP_MAX  /**< AT_UNSOL_RESP_MAX */
 }service_at_unsolResp_t;
 

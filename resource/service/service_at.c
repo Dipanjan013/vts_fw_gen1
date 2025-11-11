@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include "usart.h"
+#include "utils_gps.h"
 
 //Macros
 typedef uint8_t (*CmdHandler_t)(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
@@ -30,10 +31,10 @@ static uint8_t IccidHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t c
 static uint8_t SimSlotHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 
 /* Unsolicited response handlers */
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
-static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
 
 //Global Variables
 __attribute__((unused)) port_uart_handle_t gpsUartHndl;
@@ -44,6 +45,7 @@ __attribute__((unused)) port_uart_handle_t gpsUartHndl;
  */
 static service_at_cmd_s gAtCmdTable[AT_MAX] = {
     {AT_EXE_TEST, "AT\r", NULL},
+		{AT_EXE_ECHO_OFF, "ATE0\r", NULL},
     {AT_READ_IMSI, "AT+CIMI?\r", CimiHandler},
     {AT_READ_MFG_INFO, "ATI\r", AtiHandler},
     {AT_READ_ICCID, "AT+ICCID\r", IccidHandler},
@@ -58,14 +60,12 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
 		//GPS Commands
 		{AT_EXE_GPS_ON, "AT+CGPS=1\r", NULL},
 		{AT_EXE_GPS_OFF, "AT+CGPS=0\r", NULL},
-		{AT_READ_GPS_STREAM, "AT+GPSPORT=1\r", NULL},
-		{AT_EXE_GPS_STREAM_STOP, "AT+GPSPORT=0\r", NULL},
+		{AT_READ_GPS_POS, "AT+CGPSGPOS=?\r", GpsPosHandler}
 };
 
 static service_at_unsolRespCmd_s gUnsolRespCmdTable[AT_UNSOL_RESP_MAX] = {
 		{AT_UNSOL_RESP_SMS, "+CMT", UnsolSmsHandler},
 		{AT_UNSOL_RESP_CALL, "+RING", NULL},
-		{AT_UNSOL_RESP_GPS, "RMC", UnsolGpsHandler},
 };
 
 //Extern variables
@@ -182,6 +182,25 @@ static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 	return 1;
 }
 
+static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, NULL, timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}
+	nmea_s nmea = {0};
+	if(1 == utils_gps_NmeaParse((char*)temp, &nmea)){
+		if(size == sizeof(nmea_s)){
+			memcpy(rxBuff, (uint8_t*)&nmea, size);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
 {
 	if(cmdLen){
@@ -191,19 +210,6 @@ static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_
 		service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, temp, cmdLen);
 	}else{
 		service_at_UnsolRespCallback(AT_UNSOL_RESP_SMS, NULL, 0);
-	}
-	return 1;
-}
-
-static uint8_t UnsolGpsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
-{
-	if(cmdLen){
-		uint8_t temp[cmdLen+1];
-		memset(temp, 0, sizeof(cmdLen));
-		memcpy(temp, cmd, cmdLen);
-		service_at_UnsolRespCallback(AT_UNSOL_RESP_GPS, temp, cmdLen);
-	}else{
-		service_at_UnsolRespCallback(AT_UNSOL_RESP_GPS, NULL, 0);
 	}
 	return 1;
 }

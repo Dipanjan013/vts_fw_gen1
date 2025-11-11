@@ -1,2 +1,2 @@
-../resource/utils/utils_gps.c:14:9:utils_gps_NmeaParse	17
-../resource/utils/utils_gps.c:120:6:utils_gps_PrintNmea	1
+../resource/utils/utils_gps.c:7:9:utils_gps_NmeaParse	17
+../resource/utils/utils_gps.c:113:6:utils_gps_PrintNmea	1

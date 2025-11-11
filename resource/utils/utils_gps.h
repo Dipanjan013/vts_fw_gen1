@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 
-#define NMEA_LOG 1				//for nmea parsing log print
 #define UTC_LEN 6   			//hhmmss
 #define DATE_LEN 6  			//ddmmyy
 #define LAT_LON_LEN 20		//For latitude : xx.xxxxxxxx (using 8 decimal points for more accuracy). For longitude : xxx.xxxxxxxx
@@ -25,12 +24,12 @@
  * @param lonPole : E or W
  */
 typedef struct{
-    char utc[UTC_LEN + 1];
-    char date[DATE_LEN + 1];
-    char lat[LAT_LON_LEN+1];
-    char latPole;
-    char lon[LAT_LON_LEN+1];
-    char lonPole;
+	char utc[UTC_LEN + 1];
+	char date[DATE_LEN + 1];
+	char lat[LAT_LON_LEN+1];
+	char latPole;
+	char lon[LAT_LON_LEN+1];
+	char lonPole;
 }nmea_s;
 
 /*!

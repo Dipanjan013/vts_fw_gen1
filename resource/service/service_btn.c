@@ -167,6 +167,6 @@ void service_btn_Init(void)
 void service_btn_Deinit(void)
 {
 	port_gpio_DeInit(PORT_GPIO_PORT_A, PORT_GPIO_PIN_6);
-	port_timer_DeInit(gBtnTmrHnd);
+	port_timer_HwTimDeinit(&htim3);
 	printf("Button De-Init OK\r\n");
 }

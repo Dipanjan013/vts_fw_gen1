@@ -158,6 +158,16 @@ port_timer_fnStatus_t port_timer_HwTimInit(port_timer_hwTimHndl *pHndl, port_tim
 	return PORT_TIMER_FN_STATUS_OK;
 }
 
+port_timer_fnStatus_t port_timer_HwTimDeinit(port_timer_hwTimHndl *pHndl)
+{
+	HAL_StatusTypeDef ret;
+	ret = HAL_TIM_Base_DeInit(pHndl);
+	if(ret != HAL_OK){
+		return PORT_TIMER_FN_STATUS_FAIL;
+	}
+	return PORT_TIMER_FN_STATUS_OK;
+}
+
 port_timer_fnStatus_t port_timer_HwTimStartIT(port_timer_hwTimHndl *pHndl)
 {
 	HAL_StatusTypeDef ret;

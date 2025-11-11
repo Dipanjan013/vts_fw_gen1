@@ -16,6 +16,7 @@
 
 typedef enum{
 	PORT_LED_COLOUR_BLUE,
+	PORT_LED_COLOUR_ALL,
 }port_led_colour_e;
 
 /*!

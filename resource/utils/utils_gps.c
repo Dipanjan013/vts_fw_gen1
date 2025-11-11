@@ -2,18 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "utils_gps.h"
-
-#define NMEA_LOG_PRINT(fmt, ...) \
-	do { \
-			if (NMEA_LOG) { \
-					printf(fmt, __VA_ARGS__); \
-			} \
-	} while (0)
-
+#include "service_log.h"
 
 uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
   if (!buff || !pTarget) {
-    NMEA_LOG_PRINT("[line : %d]Invalid arg\r\n", __LINE__);
+    LOG_D("[line : %d]Invalid arg\r\n", __LINE__);
     return 0;
   }
   char *pStart = strstr(buff, "RMC,");
@@ -21,7 +14,7 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
   do {
     // Check RMC in the nmea sentence
     if (!pStart) {
-      NMEA_LOG_PRINT("[line : %d]RMC not found!\r\n", __LINE__);
+			LOG_D("[line : %d]RMC not found!\r\n", __LINE__);
       break;
     }
     // Move pointer to the first data field (skip "RMC,")
@@ -29,25 +22,25 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
     // Extract UTC time
     char *tok = strchr(buff, ',');
     if (!tok) {
-      NMEA_LOG_PRINT("[line : %d]UTC field not found!\r\n", __LINE__);
+			LOG_D("[line : %d]UTC field not found!\r\n", __LINE__);
       break;
     }
     strncpy(pTarget->utc, buff, (tok - buff) < UTC_LEN ? (tok - buff) : UTC_LEN);
     // Check fix data character
     buff = tok + 1;
     if (*buff != 'A') {
-      NMEA_LOG_PRINT("[line : %d]No Fix\r\n", __LINE__);
+			LOG_D("[line : %d]No Fix\r\n", __LINE__);
       break;
     }
     // Extract latitude
     buff += 2;  // buff check?
     tok = strchr(buff, ',');
     if (!tok) {
-      NMEA_LOG_PRINT("[line : %d]Latitute field not found\r\n", __LINE__);
+			LOG_D("[line : %d]Latitute field not found\r\n", __LINE__);
       break;
     }
     if ((tok - buff) < 2) {
-      NMEA_LOG_PRINT("[line : %d]Latitute data error\r\n", __LINE__);
+			LOG_D("[line : %d]Latitute data error\r\n", __LINE__);
       break;
     }
     // Copy degrees (first two digits)
@@ -64,7 +57,7 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
     if (*buff == 'N' || *buff == 'S') {
       pTarget->latPole = *buff;
     } else {
-      NMEA_LOG_PRINT("[line : %d]Latitute pole incorrect\r\n", __LINE__);
+			LOG_D("[line : %d]Latitude pole incorrect\r\n", __LINE__);
       break;
     }
 
@@ -72,11 +65,11 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
     buff += 2;  // buff check?
     tok = strchr(buff, ',');
     if (!tok) {
-      NMEA_LOG_PRINT("[line : %d]Longitude field not found\r\n", __LINE__);
+			LOG_D("[line : %d]Longitude field not found\r\n", __LINE__);
       break;
     }
     if ((tok - buff) < 3) {
-      NMEA_LOG_PRINT("[line : %d]Longitude data error\r\n", __LINE__);
+			LOG_D("[line : %d]Longitude data error\r\n", __LINE__);
       break;
     }
     // Copy degrees (first two digits)
@@ -92,7 +85,7 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
     if (*buff == 'E' || *buff == 'W') {
       pTarget->lonPole = *buff;
     } else {
-      NMEA_LOG_PRINT("[line : %d]Longitude pole incorrect\r\n", __LINE__);
+			LOG_D("[line : %d]Longitude pole incorrect\r\n", __LINE__);
       break;
     }
 
@@ -108,7 +101,7 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
     // Parse Date
     tok = strchr(buff, ',');
     if (!tok) {
-      NMEA_LOG_PRINT("[line : %d]Date field error\r\n", __LINE__);
+			LOG_D("[line : %d]Date field error\r\n", __LINE__);
       break;
     }
     strncpy(pTarget->date, buff, (tok - buff) < DATE_LEN ? (tok - buff) : DATE_LEN);
@@ -119,11 +112,11 @@ uint8_t utils_gps_NmeaParse(char *buff, nmea_s *pTarget) {
 
 void utils_gps_PrintNmea(const nmea_s *pNmea)
 {
-	printf("[%s]\r\n", __func__);
-  printf("UTC: %s\n", pNmea->utc);
-  printf("Date: %s\n", pNmea->date);
-  printf("Latitude: %s\n", pNmea->lat);
-  printf("Latitude Pole: %c\n", pNmea->latPole);
-  printf("Longitude: %s\n", pNmea->lon);
-  printf("Longitude Pole: %c\n", pNmea->lonPole);
+	LOG_D("[%s]\r\n", __func__);
+	LOG_D("UTC: %s\n", pNmea->utc);
+	LOG_D("Date: %s\n", pNmea->date);
+	LOG_D("Latitude: %s\n", pNmea->lat);
+	LOG_D("Latitude Pole: %c\n", pNmea->latPole);
+	LOG_D("Longitude: %s\n", pNmea->lon);
+	LOG_D("Longitude Pole: %c\n", pNmea->lonPole);
 }
