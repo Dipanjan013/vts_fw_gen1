@@ -40,6 +40,7 @@ port_timer_fnStatus_t port_timer_DeInit(port_timer_hndle_t handle);
 void port_timer_Delay(uint32_t ms);
 uint32_t port_timer_GetMillis(void);
 uint32_t port_timer_GetElapsedTimeMs(uint32_t startTimeMs);
+uint32_t port_timer_GetUnixTime(void);
 
 /*!
  * @fn API to calculate the Prescaler register value & auto-reload register value

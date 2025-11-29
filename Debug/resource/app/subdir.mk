@@ -5,13 +5,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../resource/app/app.c 
+../resource/app/app.c \
+../resource/app/app_utils.c 
 
 OBJS += \
-./resource/app/app.o 
+./resource/app/app.o \
+./resource/app/app_utils.o 
 
 C_DEPS += \
-./resource/app/app.d 
+./resource/app/app.d \
+./resource/app/app_utils.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +24,7 @@ resource/app/%.o resource/app/%.su resource/app/%.cyclo: ../resource/app/%.c res
 clean: clean-resource-2f-app
 
 clean-resource-2f-app:
-	-$(RM) ./resource/app/app.cyclo ./resource/app/app.d ./resource/app/app.o ./resource/app/app.su
+	-$(RM) ./resource/app/app.cyclo ./resource/app/app.d ./resource/app/app.o ./resource/app/app.su ./resource/app/app_utils.cyclo ./resource/app/app_utils.d ./resource/app/app_utils.o ./resource/app/app_utils.su
 
 .PHONY: clean-resource-2f-app
 

@@ -7,7 +7,8 @@
 #include "app.h"
 #include "port_i2c.h"
 #include "service_log.h"
-#include "utils_gps.h"
+#include "service_queue.h"
+#include "app_utils.h"
 
 //Macros
 #define MSG_POST_TIMEOUT_MS 100U
@@ -28,7 +29,10 @@ typedef enum{
 	APP_EVENT_CONNECT_CELLULAR,
 	APP_EVENT_CONNECT_MQTT,
 	APP_EVENT_PUB_DATA,
+	APP_EVENT_PUB_SUCCESS,
+	APP_EVENT_PUB_ERR,
 	APP_EVENT_SLEEP,
+	APP_EVENT_INITIALIZATION_FAILURE,
 	APP_EVENT_MAX
 }app_event_e;
 
@@ -65,11 +69,21 @@ static app_stateInst_s gAppStateInstance = {0};
 static osMessageQueueId_t gQueueHndl = NULL;
 static port_timer_hndle_t gSamplingTmrHnd = NULL;
 static port_timer_hndle_t gReportingTmrHnd = NULL;
+static app_eventParam_s *gp_eventParamLast = NULL;
+static service_queue_t gSensorQ = {0};
 
 static volatile uint32_t gAppFlags = 0;
 /*!**************************************************************************************************************************
  *
  ***************************************************************************************************************************/
+#define FREE_AND_NULLIFY_PTR(ptr) \
+  do {                            \
+    if (ptr != NULL) {            \
+      free(ptr);                  \
+      ptr = NULL;                 \
+    }                             \
+  } while(0)
+
 
 static inline void AppSetFlag(appFlagBits_e bit)
 {
@@ -106,6 +120,7 @@ static void SamplingTmrCb(void *arg)
 static void ReportingTmrCb(void *arg)
 {
 	(void)(arg);
+	AppSetFlag(APP_FLAG_BIT_RI_FIRED);
 }
 
 void service_at_UnsolRespCallback(service_at_unsolResp_t type, uint8_t *buff, uint16_t len)
@@ -169,8 +184,15 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 		case APP_EVENT_INIT:{
 			LOG_I("[%s] Init\r\n", __func__);
 			do{
+				//initialize the circular  queue
+				service_queue_Init(&gSensorQ);
+
 				//Initialize the button service
 				service_btn_Init();
+
+				//Initialize the timers
+				port_timer_InitOneShot(gReportingTmrHnd, ReportingTmrCb);
+				port_timer_InitPeriodic(gSamplingTmrHnd, SamplingTmrCb);
 
 				//Check cellular communication
 				LOG_I("Checking comm.with Cavli\r\n");
@@ -187,10 +209,6 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 				}else{
 					printf("MFG Data : %s\r\n", (char*)readData);
 				}
-
-				//Initialize the timers
-				port_timer_InitOneShot(gReportingTmrHnd, ReportingTmrCb);
-				port_timer_InitPeriodic(gSamplingTmrHnd, SamplingTmrCb);
 
 				//Initialize the accelerometer
 				LOG_I("Initializing the Accelerometer\r\n");
@@ -234,6 +252,7 @@ static app_stateStatus_e AppStateSampling(app_eventParam_s *pParam, app_stateIns
 {
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
 	nmea_s nmea = {0};
+	app_eventParam_s eventParam = {0};
 	int rc = 0;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
@@ -251,13 +270,20 @@ static app_stateStatus_e AppStateSampling(app_eventParam_s *pParam, app_stateIns
 					osDelay(3000);
 				}
 			}
+			//Turn off GPS
+			service_at_Execute(SERVICE_AT_UART_INST0, AT_EXE_GPS_OFF, 1000);
 			if(rc){
 				utils_gps_PrintNmea(&nmea);
-				eventParam.event = APP_EVENT_PUB_DATA;
-				pInst->nextState = AppStatePublish;
+				service_queue_sensorData_s data = {0};
+				data.unixTime = port_timer_GetUnixTime();
+				data.gpsData = nmea;
+				service_queue_Enqueue(&gSensorQ, &data);
 			}else{
 				LOG_W("GPS loc failed\r\n");
-				eventParam.event = APP_EVENT_PUB_DATA;
+			}
+			if(app_flagGet(APP_FLAG_BIT_RI_FIRED)){
+				pInst->nextState = AppStatePublish;
+			}else{
 				pInst->nextState = AppStateIdle;
 			}
 			stateStatus = APP_STATE_STATUS_TRANS;
@@ -276,18 +302,36 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
+			FREE_AND_NULLIFY_PTR(gp_eventParamLast);
+			gp_eventParamLast = (app_eventParam_s*)calloc(sizeof(app_eventParam_s), 1);
+			if(gp_eventParamLast){
+				memcpy(gp_eventParamLast, pParam, sizeof(app_eventParam_s));
+				gp_eventParamLast->event = APP_EVENT_PUB_DATA;
+			}
+			AppPostEvent(gp_eventParamLast);
 			break;
 		case APP_EVENT_PUB_DATA:
 			LOG_I("[%s] %s\r\n", __func__, "Event Pub data");
-			while(1){
-				if(app_flagGet(APP_FLAG_BIT_ADXL_TAP)){
-					LOG_D("ADXL IRQ recvd\r\n");
-					AppClearFlag(APP_FLAG_BIT_ADXL_TAP);
-				}
-				osDelay(500);
-			}
+			char payLoad[APP_PUB_PACKET_SIZE + 1] = {0};
+			app_utils_CreateTeleRaw(payLoad, APP_PUB_PACKET_SIZE, &gp_eventParamLast->param.gps.nmea);
+			FREE_AND_NULLIFY_PTR(gp_eventParamLast);
+			//Publish to MQTT
+			service_at_Set(SERVICE_AT_UART_INST0, AT_SET_MQTTPUB, (uint8_t*)payLoad, strlen(payLoad), 1000);
+			break;
+		case APP_EVENT_PUB_ERR:
+			LOG_I("[%s] %s\r\n", __func__, "Event Pub error");
+			break;
+		case APP_EVENT_PUB_SUCCESS:
+			LOG_I("[%s] %s\r\n", __func__, "Event Pub success");
+			port_timer_StartOneShot(gReportingTmrHnd, (CONFIG_DEF_RI_MINS * SEC_TO_MS));
+			port_timer_StartPeriodic(gSamplingTmrHnd, (CONFIG_DEF_SI_MINS * SEC_TO_MS));
+			app_eventParam_s eventParam = {.event = APP_EVENT_SLEEP};
+			gAppStateInstance.nextState = AppStateIdle;
+			AppPostEvent(&eventParam);
+			stateStatus = APP_STATE_STATUS_TRANS;
 			break;
 		case APP_RESERVED_EVENT_EXIT:
+			FREE_AND_NULLIFY_PTR(gp_eventParamLast);
 			break;
 		default:
 			LOG_W("[%s] Unknown event %d\r\n", __func__, pParam->event);
@@ -303,6 +347,11 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
 			break;
 		case APP_EVENT_SLEEP:
 			LOG_I("[%s] %s\r\n", __func__, "Event Sleep");
+			break;
+		case APP_EVENT_INITIALIZATION_FAILURE:
+			LOG_E("Error : Pre-operating state failure\r\n");
+			osDelay(500);
+			AppPostEvent(pParam);
 			break;
 		case APP_RESERVED_EVENT_EXIT:
 			break;

@@ -22,7 +22,7 @@ typedef struct{
   uint8_t cnt;
 }patternTable_s;
 
-static port_timer_hndle_t gBtnTmrHnd;
+//static port_timer_hndle_t gBtnTmrHnd;
 static patternTable_s gCurrentPattern;
 static btnState_e gBtnState = BTN_WAIT_FOR_PRESS;
 
@@ -46,7 +46,7 @@ void service_btn_IrqCb(void)
 	if(!port_timer_HwTimIsRunning(&htim3)){
 		memset(&gCurrentPattern, 0, sizeof(patternTable_s));
 		gBtnState = BTN_WAIT_FOR_PRESS;
-		printf("Start timer\r\n");
+//		printf("Start timer\r\n");
 		port_timer_HwTimStartIT(&htim3);
 	}
 }

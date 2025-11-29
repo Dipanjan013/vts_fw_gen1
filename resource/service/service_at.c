@@ -32,6 +32,7 @@ static uint8_t SimSlotHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t
 static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttPubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 
 /* Unsolicited response handlers */
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
@@ -52,6 +53,7 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
     {AT_READ_SIM_SLOT, "AT^SIMSWAP?\r", SimSlotHandler},
     {AT_SET_ESIM, "AT^SIMSWAP=0\r", NULL},
 		{AT_SET_EXTSIM, "AT^SIMSWAP=1\r", NULL},
+		{AT_SET_MQTTPUB, "\r", MqttPubHandler},
     {AT_READ_NW_REG_STAT, "AT+CREG?\r", CregHandler},
     {AT_READ_CSQ, "AT+CSQ\r", CsqHandler},
     {AT_EXE_RESET, "AT+TRB\r", NULL},
@@ -198,6 +200,17 @@ static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t 
 			return 1;
 		}
 	}
+	return 0;
+}
+
+static uint8_t MqttPubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	(void)(handle);
+	(void)(cmd);
+	(void)(cmdLen);
+	(void)(rxBuff);
+	(void)(size);
+	(void)(timeoutMs);
 	return 0;
 }
 

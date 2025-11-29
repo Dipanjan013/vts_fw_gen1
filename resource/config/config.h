@@ -7,7 +7,7 @@
 
 #define APP_TASK_SIZE (1024 * 4)
 
-#define CONFIG_DEF_RI_MINS 5
-#define CONFIG_DEF_SI_MINS 1
+#define CONFIG_DEF_RI_MINS 10
+#define CONFIG_DEF_SI_MINS 3
 
 #endif /* CONFIG_H_ */

@@ -39,6 +39,7 @@
 "./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o"
 "./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o"
 "./resource/app/app.o"
+"./resource/app/app_utils.o"
 "./resource/driver/drv_adxl.o"
 "./resource/intf/intf_at.o"
 "./resource/port/port_gpio.o"

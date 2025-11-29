@@ -23,21 +23,31 @@ typedef enum service_at_tagUartInstance{
  * @note: The command table doesn't care about the order of index as command look up table feature is present
  */
 typedef enum service_at_tagcmdType{
-	AT_EXE_TEST,        /**< AT */
 	AT_ECHO_OFF,
+	/* Read commands */
+	AT_READ_GPS_POS,
 	AT_READ_MFG_INFO,   /**< ATI. Reads IMEI, vendor ID, mfg ID, HW rev, build date, etc */
 	AT_READ_IMSI,       /**< AT_READ_IMSI */
 	AT_READ_ICCID,      /**< AT_READ_ICCID */
 	AT_READ_SIM_SLOT,   /**< AT_READ_SIM_SLOT */
-	AT_SET_ESIM,        /**< AT_SET_ESIM */
-	AT_SET_EXTSIM,      /**< AT_SET_EXTSIM */
 	AT_READ_NW_REG_STAT,/**< AT_READ_NW_REG_STAT */
 	AT_READ_CSQ,        /**< AT_READ_CSQ */
+	/* End of read commands */
+
+	/* Set commands */
+	AT_SET_ESIM,        /**< AT_SET_ESIM */
+	AT_SET_EXTSIM,      /**< AT_SET_EXTSIM */
+	AT_SET_MQTTPUB,
+	/* End of Set commands */
+
+	/* Execute commands */
+	AT_EXE_TEST,        /**< AT */
 	AT_EXE_RESET,       /**< AT_EXE_RESET */
 	AT_EXE_ECHO_OFF,    /**< AT_EXE_ECHO_OFF */
 	AT_EXE_GPS_ON,
 	AT_EXE_GPS_OFF,
-	AT_READ_GPS_POS,
+	/* End of Execute commands */
+
 	AT_MAX  //end
 }service_at_cmd_t;
 

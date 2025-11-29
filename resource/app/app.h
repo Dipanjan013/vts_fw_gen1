@@ -15,28 +15,28 @@
 #include "service_at.h"
 #include "service_btn.h"
 #include "drv_adxl.h"
+#include "utils_gps.h"
+
+#define APP_PUB_PACKET_SIZE 100
 
 typedef enum{
 	APP_FLAG_BIT_ADXL_TAP = (1 << 0),
+	APP_FLAG_BIT_RI_FIRED = (1 << 1),
 }appFlagBits_e;
-
-typedef struct{
-
-}app_cellularData_s;	//separate file for this?
-
-typedef struct{
-
-}app_gpsData_s;				//separate file for this?
 
 typedef struct{
 	uint16_t event;
 	union{
 		struct{
-			app_cellularData_s data;
-		}cellular;
+			char data[APP_PUB_PACKET_SIZE + 1];
+		}telemetry;
 		struct{
-			app_gpsData_s data;
+			nmea_s nmea;
 		}gps;
+		struct{
+			uint16_t err_code;
+			char info[10];
+		}errData;
 	}param;
 }app_eventParam_s;
 

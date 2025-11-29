@@ -10,9 +10,11 @@
 ../resource/port/port_timer.c:88:23:port_timer_DeInit	24	static
 ../resource/port/port_timer.c:98:9:port_timer_CalcPscArr	40	static
 ../resource/port/port_timer.c:126:23:port_timer_HwTimInit	56	static
-../resource/port/port_timer.c:161:23:port_timer_HwTimStartIT	24	static
-../resource/port/port_timer.c:171:23:port_timer_HwTimStopIT	24	static
-../resource/port/port_timer.c:181:9:port_timer_HwTimIsRunning	24	static
-../resource/port/port_timer.c:191:6:port_timer_Delay	16	static
-../resource/port/port_timer.c:199:10:port_timer_GetMillis	8	static
-../resource/port/port_timer.c:204:10:port_timer_GetElapsedTimeMs	16	static
+../resource/port/port_timer.c:161:23:port_timer_HwTimDeinit	24	static
+../resource/port/port_timer.c:171:23:port_timer_HwTimStartIT	24	static
+../resource/port/port_timer.c:181:23:port_timer_HwTimStopIT	24	static
+../resource/port/port_timer.c:191:9:port_timer_HwTimIsRunning	24	static
+../resource/port/port_timer.c:201:6:port_timer_Delay	16	static
+../resource/port/port_timer.c:209:10:port_timer_GetMillis	8	static
+../resource/port/port_timer.c:214:10:port_timer_GetElapsedTimeMs	16	static
+../resource/port/port_timer.c:219:10:port_timer_GetUnixTime	4	static

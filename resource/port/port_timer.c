@@ -215,3 +215,8 @@ uint32_t port_timer_GetElapsedTimeMs(uint32_t startTimeMs)
 {
 	return (osKernelGetTickCount() - startTimeMs);
 }
+
+uint32_t port_timer_GetUnixTime(void)
+{
+	return 0;
+}
