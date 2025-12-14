@@ -32,6 +32,7 @@ typedef enum{
 	APP_EVENT_PUB_SUCCESS,
 	APP_EVENT_PUB_ERR,
 	APP_EVENT_SLEEP,
+	APP_EVENT_SI_FIRED,
 	APP_EVENT_INITIALIZATION_FAILURE,
 	APP_EVENT_MAX
 }app_event_e;
@@ -115,6 +116,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 static void SamplingTmrCb(void *arg)
 {
 	(void)(arg);
+	if(gAppStateInstance.activeState == AppStateIdle){
+		app_eventParam_s eventParam = {.event = APP_EVENT_SI_FIRED};
+		AppPostEventFromIsr(&eventParam);
+	}
 }
 
 static void ReportingTmrCb(void *arg)
@@ -192,7 +197,7 @@ static app_stateStatus_e AppStatePreOp(app_eventParam_s *pParam, app_stateInst_s
 
 				//Initialize the timers
 				port_timer_InitOneShot(gReportingTmrHnd, ReportingTmrCb);
-				port_timer_InitPeriodic(gSamplingTmrHnd, SamplingTmrCb);
+				port_timer_InitOneShot(gSamplingTmrHnd, SamplingTmrCb);
 
 				//Check cellular communication
 				LOG_I("Checking comm.with Cavli\r\n");
@@ -282,6 +287,7 @@ static app_stateStatus_e AppStateSampling(app_eventParam_s *pParam, app_stateIns
 				LOG_W("GPS loc failed\r\n");
 			}
 			if(app_flagGet(APP_FLAG_BIT_RI_FIRED)){
+				AppClearFlag(APP_FLAG_BIT_RI_FIRED);
 				pInst->nextState = AppStatePublish;
 			}else{
 				pInst->nextState = AppStateIdle;
@@ -316,15 +322,13 @@ static app_stateStatus_e AppStatePublish(app_eventParam_s *pParam, app_stateInst
 			app_utils_CreateTeleRaw(payLoad, APP_PUB_PACKET_SIZE, &gp_eventParamLast->param.gps.nmea);
 			FREE_AND_NULLIFY_PTR(gp_eventParamLast);
 			//Publish to MQTT
-			service_at_Set(SERVICE_AT_UART_INST0, AT_SET_MQTTPUB, (uint8_t*)payLoad, strlen(payLoad), 1000);
+			service_at_Write(SERVICE_AT_UART_INST0, AT_WRITE_MQTTPUB, (uint8_t*)payLoad, strlen(payLoad), 1000);
 			break;
 		case APP_EVENT_PUB_ERR:
 			LOG_I("[%s] %s\r\n", __func__, "Event Pub error");
 			break;
 		case APP_EVENT_PUB_SUCCESS:
 			LOG_I("[%s] %s\r\n", __func__, "Event Pub success");
-			port_timer_StartOneShot(gReportingTmrHnd, (CONFIG_DEF_RI_MINS * SEC_TO_MS));
-			port_timer_StartPeriodic(gSamplingTmrHnd, (CONFIG_DEF_SI_MINS * SEC_TO_MS));
 			app_eventParam_s eventParam = {.event = APP_EVENT_SLEEP};
 			gAppStateInstance.nextState = AppStateIdle;
 			AppPostEvent(&eventParam);
@@ -344,9 +348,23 @@ static app_stateStatus_e AppStateIdle(app_eventParam_s *pParam, app_stateInst_s 
 	app_stateStatus_e stateStatus = APP_STATE_STATUS_HANDLED;
 	switch(pParam->event){
 		case APP_RESERVED_EVENT_ENTRY:
+			//Start the timers
+			if(port_timer_IsRunning(gReportingTmrHnd) != 1){
+				port_timer_StartOneShot(gReportingTmrHnd, (CONFIG_DEF_RI_MINS * SEC_TO_MS));
+			}
+			if(port_timer_IsRunning(gSamplingTmrHnd) != 1){
+				port_timer_StartOneShot(gSamplingTmrHnd, (CONFIG_DEF_SI_MINS * SEC_TO_MS));
+			}
 			break;
 		case APP_EVENT_SLEEP:
 			LOG_I("[%s] %s\r\n", __func__, "Event Sleep");
+			break;
+		case APP_EVENT_SI_FIRED:
+			LOG_I("[%s] %s\r\n", __func__, "Event S.I");
+			gAppStateInstance.nextState = AppStateSampling;
+			app_eventParam_s eventParam = {.event = APP_EVENT_FETCH_GPS};
+			stateStatus = APP_STATE_STATUS_TRANS;
+			AppPostEvent(&eventParam);
 			break;
 		case APP_EVENT_INITIALIZATION_FAILURE:
 			LOG_E("Error : Pre-operating state failure\r\n");

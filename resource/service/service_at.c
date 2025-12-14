@@ -30,9 +30,15 @@ static uint8_t AtiHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmd
 static uint8_t IccidHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t SimSlotHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t PdnHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 static uint8_t MqttPubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttSubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttCreateHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttDeleteHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttConnectHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
+static uint8_t MqttDisconnectHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs);
 
 /* Unsolicited response handlers */
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen);
@@ -51,10 +57,16 @@ static service_at_cmd_s gAtCmdTable[AT_MAX] = {
     {AT_READ_MFG_INFO, "ATI\r", AtiHandler},
     {AT_READ_ICCID, "AT+ICCID\r", IccidHandler},
     {AT_READ_SIM_SLOT, "AT^SIMSWAP?\r", SimSlotHandler},
-    {AT_SET_ESIM, "AT^SIMSWAP=0\r", NULL},
-		{AT_SET_EXTSIM, "AT^SIMSWAP=1\r", NULL},
-		{AT_SET_MQTTPUB, "\r", MqttPubHandler},
+    {AT_EXE_ESIM, "AT^SIMSWAP=0\r", NULL},
+		{AT_EXE_EXTSIM, "AT^SIMSWAP=1\r", NULL},
+		{AT_WRITE_MQTTCREATE, "AT+MQTTCREATE=\r", MqttCreateHandler},
+		{AT_WRITE_MQTTCONNECT, "AT+MQTTCONN=\r", MqttConnectHandler},
+		{AT_WRITE_MQTTPUB, "AT+MQTTPUB=\r", MqttPubHandler},
+		{AT_WRITE_MQTTSUB, "AT+MQTTSUBUNSUB=\r", MqttSubHandler},
+		{AT_WRITE_MQTTDISCONNECT, "AT+MQTTDISCONN=\r", MqttDisconnectHandler},
+		{AT_WRITE_MQTTDELETE, "AT+MQTTDELETE=\r", MqttDeleteHandler},
     {AT_READ_NW_REG_STAT, "AT+CREG?\r", CregHandler},
+		{AT_READ_PDN_STATUS, "AT+CGACT?\r", PdnHandler},
     {AT_READ_CSQ, "AT+CSQ\r", CsqHandler},
     {AT_EXE_RESET, "AT+TRB\r", NULL},
     {AT_EXE_ECHO_OFF, "ATE0\r", NULL},
@@ -168,6 +180,19 @@ static uint8_t CregHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cm
 	return 1;
 }
 
+static uint8_t PdnHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[30] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "+CGACT:1,1", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
 static uint8_t CsqHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
 {
 	printf("[%s]\r\n", __func__);
@@ -205,13 +230,81 @@ static uint8_t GpsPosHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t 
 
 static uint8_t MqttPubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
 {
-	(void)(handle);
-	(void)(cmd);
-	(void)(cmdLen);
-	(void)(rxBuff);
-	(void)(size);
-	(void)(timeoutMs);
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "PUBLISH SUCCESS", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
+static uint8_t MqttSubHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "SUBSCRIBE SUCCESS", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
+static uint8_t MqttCreateHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "CREATED", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
+static uint8_t MqttDeleteHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "DELETED", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
 	return 0;
+}
+
+static uint8_t MqttConnectHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "CONNECTED", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
+}
+
+static uint8_t MqttDisconnectHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen, uint8_t *rxBuff, uint16_t size, uint16_t timeoutMs)
+{
+	printf("[%s]\r\n", __func__);
+	uint8_t temp[50] = {0};
+	intf_at_fnStatus_t ret;
+	ret = intf_at_Command(handle, cmd, cmdLen, temp, sizeof(temp)-1, 1, "DISCONNECTED", timeoutMs);
+	if(INTF_AT_FN_STATUS_OK != ret){
+		return 0;
+	}else{
+		return 1;
+	}
 }
 
 static uint8_t UnsolSmsHandler(port_uart_handle_t *handle, uint8_t *cmd, uint16_t cmdLen)
@@ -242,13 +335,13 @@ uint8_t service_at_Init(void)
 	}
 }
 
-uint8_t service_at_Set(service_at_uartInst_t instance, service_at_cmd_t type, uint8_t *txBuff, uint16_t size, uint16_t timeoutMs)
+uint8_t service_at_Write(service_at_uartInst_t instance, service_at_cmd_t type, uint8_t *txBuff, uint16_t size, uint16_t timeoutMs)
 {
 	port_uart_handle_t *handle = NULL;
 	if(instance == SERVICE_AT_UART_INST0){
-			handle = &huart1;
+		handle = &huart1;
 	}else{
-			handle = &gpsUartHndl;
+		handle = &gpsUartHndl;
 	}
 
 	service_at_cmd_s *pCmdInfo = pCmdLukUpTbl(type);
